@@ -9,6 +9,8 @@
 import Image from "next/image";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import Reveal from "@/components/motion/Reveal";
+import { DISTANCE, DURATION } from "@/lib/motion";
 
 
 type Property = {
@@ -162,15 +164,15 @@ export default function Properties() {
 	return (
 		<section className="w-full bg-brand-yellow py-16 md:py-20">
 			<div className="mx-auto w-full max-w-site px-4 md:px-8">
-				<h2 className="text-center font-sans text-xl font-medium uppercase tracking-wider text-brand-blue md:text-2xl">
+				<Reveal as="h2" className="text-center font-sans text-xl font-medium uppercase tracking-wider text-brand-blue md:text-2xl">
 					<span className="mr-2 inline-block font-script text-[52px] font-normal normal-case leading-none tracking-normal">
 						Don&apos;t Worry
 					</span>
 					we&apos;ve got you covered
-				</h2>
+				</Reveal>
 			</div>
 
-			<div className="relative mx-auto mt-10 w-full max-w-site px-12 md:px-16">
+			<Reveal y={DISTANCE.card} duration={DURATION.card} delay={0.1} className="relative mx-auto mt-10 w-full max-w-site px-12 md:px-16">
 				<button
 					type="button"
 					aria-label="Previous properties"
@@ -237,7 +239,7 @@ export default function Properties() {
 						))}
 					</ul>
 				</div>
-			</div>
+			</Reveal>
 		</section>
 	);
 }

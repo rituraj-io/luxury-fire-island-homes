@@ -7,6 +7,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { DURATION, EASE } from "@/lib/motion";
 
 
 const LEFT_LINKS = [
@@ -26,6 +28,7 @@ const RIGHT_LINKS = [
 export default function Nav() {
   const [open, setOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+  const reduced = useReducedMotion();
 
   // Close the mobile drawer when clicking outside the header.
   useEffect(() => {
@@ -40,7 +43,13 @@ export default function Nav() {
   }, [open]);
 
   return (
-    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 bg-brand-yellow">
+    <motion.header
+      ref={headerRef}
+      className="fixed inset-x-0 top-0 z-50 bg-brand-yellow"
+      initial={reduced ? false : { y: "-100%" }}
+      animate={{ y: 0 }}
+      transition={{ duration: DURATION.nav, ease: EASE }}
+    >
       <nav className="mx-auto flex h-32 w-full max-w-site items-center justify-between px-4 md:px-8">
         {/* Desktop: left links */}
         <ul className="hidden items-center gap-8 text-sm font-medium tracking-widest text-brand-blue lg:flex">
@@ -128,6 +137,6 @@ export default function Nav() {
           backgroundSize: "auto 125%",
         }}
       />
-    </header>
+    </motion.header>
   );
 }

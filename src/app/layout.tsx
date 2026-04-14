@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import SmoothScroll from "@/components/motion/SmoothScroll";
 
 
 // Body face for long-form paragraphs.
@@ -57,7 +58,9 @@ export default function RootLayout({
       lang="en"
       className={`${gopher.variable} ${redondo.variable} ${sofia.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <SmoothScroll>{children}</SmoothScroll>
+      </body>
     </html>
   );
 }

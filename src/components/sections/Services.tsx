@@ -8,6 +8,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Reveal from "@/components/motion/Reveal";
+import RevealStagger from "@/components/motion/RevealStagger";
+import RevealItem from "@/components/motion/RevealItem";
+import { DISTANCE, DURATION } from "@/lib/motion";
 
 
 type Tab = { key: string; label: string; body: string[] };
@@ -132,11 +136,12 @@ export default function Services() {
 			<div className="mx-auto w-full max-w-[1200px] px-4 md:px-8">
 				{/* ---------- Desktop (>=992px) ---------- */}
 				<div className="hidden gap-16 min-[992px]:grid min-[992px]:grid-cols-2">
-					<ul className="flex flex-col justify-center self-center">
+					<RevealStagger as="ul" className="flex flex-col justify-center self-center">
 						{TABS.map((t, i) => {
 							const isActive = t.key === active;
 							return (
-								<li
+								<RevealItem
+									as="li"
 									key={t.key}
 									className={i === 0 ? "" : "border-t border-brand-blue/40"}
 								>
@@ -148,16 +153,12 @@ export default function Services() {
 										<PlusIcon rotated={false} />
 										<TabLabel label={t.label} active={isActive} />
 									</button>
-								</li>
+								</RevealItem>
 							);
 						})}
-					</ul>
+					</RevealStagger>
 
-					{/* Stack all cards in a single grid cell so the container's
-					    height is always the tallest card — only the active one
-					    is visible. Prevents the whole section from resizing as
-					    content switches. */}
-					<div className="grid items-center self-center [grid-template-areas:'stack']">
+					<Reveal y={DISTANCE.card} duration={DURATION.card} delay={0.15} className="grid items-center self-center [grid-template-areas:'stack']">
 						{TABS.map((t) => {
 							const isActive = t.key === active;
 							return (
@@ -174,15 +175,16 @@ export default function Services() {
 								</div>
 							);
 						})}
-					</div>
+					</Reveal>
 				</div>
 
 				{/* ---------- Mobile accordion (<992px) ---------- */}
-				<ul className="flex flex-col min-[992px]:hidden">
+				<RevealStagger as="ul" className="flex flex-col min-[992px]:hidden">
 					{TABS.map((t, i) => {
 						const isActive = t.key === active;
 						return (
-							<li
+							<RevealItem
+								as="li"
 								key={t.key}
 								className={i === 0 ? "" : "border-t border-brand-blue/40"}
 							>
@@ -196,8 +198,6 @@ export default function Services() {
 									<TabLabel label={t.label} active={isActive} />
 								</button>
 
-								{/* Collapsible panel. grid-rows 0fr <-> 1fr gives a
-								    smooth height transition without measuring. */}
 								<div
 									className={`grid transition-[grid-template-rows] duration-500 ease-in-out ${
 										isActive ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
@@ -209,10 +209,10 @@ export default function Services() {
 										</div>
 									</div>
 								</div>
-							</li>
+							</RevealItem>
 						);
 					})}
-				</ul>
+				</RevealStagger>
 			</div>
 		</section>
 	);

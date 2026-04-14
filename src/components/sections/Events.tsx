@@ -10,6 +10,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import Reveal from "@/components/motion/Reveal";
+import { DISTANCE, DURATION } from "@/lib/motion";
 
 
 type EventItem = {
@@ -141,15 +143,15 @@ export default function Events() {
 	return (
 		<section className="w-full bg-brand-orange py-16 md:py-20">
 			<div className="mx-auto w-full max-w-site px-4 md:px-8">
-				<h2 className="text-center font-sans text-xl font-medium uppercase tracking-wider text-white md:text-2xl">
+				<Reveal as="h2" className="text-center font-sans text-xl font-medium uppercase tracking-wider text-white md:text-2xl">
 					<span className="mr-2 inline-block font-script text-[52px] font-normal normal-case leading-none tracking-normal">
 						Upcoming
 					</span>
 					Community Events
-				</h2>
+				</Reveal>
 			</div>
 
-			<div className="relative mx-auto mt-10 w-full max-w-site px-12 md:px-16">
+			<Reveal y={DISTANCE.card} duration={DURATION.card} delay={0.1} className="relative mx-auto mt-10 w-full max-w-site px-12 md:px-16">
 				<button
 					type="button"
 					aria-label="Previous events"
@@ -220,16 +222,16 @@ export default function Events() {
 						))}
 					</ul>
 				</div>
-			</div>
+			</Reveal>
 
-			<div className="mx-auto mt-10 flex w-full max-w-site justify-center px-4">
+			<Reveal className="mx-auto mt-10 flex w-full max-w-site justify-center px-4">
 				<Link
 					href="#events"
 					className="bg-brand-yellow px-5 py-3 font-sans text-[16px] font-medium tracking-wider text-[#1a5c89] transition hover:brightness-95"
 				>
 					SEE ALL EVENTS
 				</Link>
-			</div>
+			</Reveal>
 		</section>
 	);
 }

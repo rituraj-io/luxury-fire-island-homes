@@ -4,6 +4,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import Reveal from "@/components/motion/Reveal";
 
 
 const I_WANT_TO = [
@@ -53,7 +54,7 @@ export default function Footer() {
 				}}
 			/>
 
-			<div className="mx-auto w-full max-w-site px-6 py-14 md:px-10 md:py-16">
+			<Reveal y={0} duration={0.9} className="mx-auto w-full max-w-site px-6 py-14 md:px-10 md:py-16">
 				<div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_1fr_1fr] lg:gap-6">
 					{/* I want to... */}
 					<div className="flex flex-col">
@@ -146,7 +147,7 @@ export default function Footer() {
 						</form>
 					</div>
 				</div>
-			</div>
+			</Reveal>
 		</footer>
 	);
 }
