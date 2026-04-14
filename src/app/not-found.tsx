@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
 	return (
-		<main className="flex min-h-screen flex-col bg-[#efe29d]">
+		<main className="flex min-h-dvh flex-col bg-[#efe29d]">
 			{/* Top pattern strip — visual continuity with Nav/Footer. */}
 			<div
 				aria-hidden

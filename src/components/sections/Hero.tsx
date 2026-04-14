@@ -40,7 +40,7 @@ export default function Hero() {
 			// the sliding navbar) so there's no white gap pre-animation. The
 			// content inside is padded by nav height (128px) + pattern strip
 			// (16px) so it never collides with the nav.
-			className="relative min-h-[664px] w-full overflow-hidden md:min-h-[784px]"
+			className="relative min-h-[calc(664px+env(safe-area-inset-top))] w-full overflow-hidden md:min-h-[calc(784px+env(safe-area-inset-top))]"
 		>
 			{/* Background image — parallaxed via a wrapping motion.div that
 			    scales so translation never exposes edges. On load it settles
@@ -66,7 +66,7 @@ export default function Hero() {
 				/>
 			</motion.div>
 
-			<div className="relative pt-[144px]">
+			<div className="relative pt-[calc(144px+env(safe-area-inset-top))]">
 				{/* Content grid */}
 				<div className="relative">
 					{/* Hero content container. On desktop the headline sits at its natural width
