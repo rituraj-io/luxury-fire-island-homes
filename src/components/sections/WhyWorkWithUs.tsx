@@ -29,21 +29,21 @@ export default function WhyWorkWithUs() {
 				<Reveal y={DISTANCE.card} duration={DURATION.card} className="absolute left-[4%] top-[5%] z-0 aspect-[486/800] w-[486px]">
 					<Bob className="pointer-events-auto absolute left-[7%] top-[7%] z-10 w-[50%]" delay={0.15} amplitude={3.5} duration={3} >
 						<div className="-rotate-[9deg]">
-							<Image src="/assets/images/photo-2.webp" alt="" width={600} height={800} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
+							<Image src="/assets/images/photo-2.webp" alt="Luxury Fire Island Homes team on the beach with clients" width={600} height={800} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
 						</div>
 					</Bob>
 
 					<Bob className="pointer-events-auto absolute left-[42%] top-[30%] z-20 w-[58%]" delay={0.75} amplitude={3} duration={2.6}>
 						<div className="-rotate-[2deg]">
 							<div className="relative aspect-[4/3] w-full overflow-hidden border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]">
-								<Image src="/assets/images/photo-3.webp" alt="" fill className="object-cover" sizes="22vw" />
+								<Image src="/assets/images/photo-3.webp" alt="Cruising Fire Island&apos;s car-free paths by beach bike" fill className="object-cover" sizes="22vw" />
 							</div>
 						</div>
 					</Bob>
 
 					<Bob className="pointer-events-auto absolute left-[-4%] top-[calc(50%-18px)] z-0 w-[76%]" delay={1.25} amplitude={4} duration={3.4}>
 						<div className="rotate-[8deg]">
-							<Image src="/assets/images/photo-1.webp" alt="" width={600} height={500} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
+							<Image src="/assets/images/photo-1.webp" alt="Charming blue beach cottage on Fire Island" width={600} height={500} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
 						</div>
 					</Bob>
 
@@ -63,7 +63,7 @@ export default function WhyWorkWithUs() {
 				<Reveal y={DISTANCE.card} duration={DURATION.card} delay={0.2} className="absolute right-[0.5%] top-[44%] aspect-[346/533] w-[346px]">
 					<Bob className="pointer-events-auto absolute left-[-8%] top-0 z-20 w-[96%]" delay={0.4} amplitude={3.5} duration={3} >
 						<div className="relative -rotate-[3deg]">
-							<Image src="/assets/images/photo-4.webp" alt="" width={800} height={600} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
+							<Image src="/assets/images/photo-4.webp" alt="Luxury waterfront Fire Island home with private pool" width={800} height={600} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
 							<div className="absolute -left-10 -top-20 flex h-32 w-32 items-center justify-center rounded-full bg-brand-yellow p-1 shadow-lg md:h-36 md:w-36 md:p-1.5">
 								<Image src="/assets/images/logo-seal-blue.svg" alt="" width={120} height={120} className="h-full w-full rotate-[9deg]" />
 							</div>
@@ -72,7 +72,7 @@ export default function WhyWorkWithUs() {
 
 					<Bob className="pointer-events-auto absolute left-[24%] top-[30%] z-10 w-[81%]" delay={1} amplitude={3} duration={2.7}>
 						<div className="rotate-[8deg]">
-							<Image src="/assets/images/photo-5.webp" alt="" width={500} height={400} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
+							<Image src="/assets/images/photo-5.webp" alt="Aerial view of a Fire Island beach home surrounded by dunes" width={500} height={400} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
 						</div>
 					</Bob>
 				</Reveal>
@@ -128,8 +128,8 @@ export default function WhyWorkWithUs() {
 			{/* ---------- Mobile (stacked) ---------- */}
 			<div className="mx-auto w-full max-w-[560px] px-4 py-16 min-[992px]:hidden">
 				<Reveal y={DISTANCE.card} duration={DURATION.card} className="grid grid-cols-2 gap-4">
-					<Image src="/assets/images/photo-2.webp" alt="" width={600} height={800} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
-					<Image src="/assets/images/photo-3.webp" alt="" width={600} height={800} className="mt-10 h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
+					<Image src="/assets/images/photo-2.webp" alt="Luxury Fire Island Homes team on the beach with clients" width={600} height={800} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
+					<Image src="/assets/images/photo-3.webp" alt="Cruising Fire Island&apos;s car-free paths by beach bike" width={600} height={800} className="mt-10 h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
 				</Reveal>
 
 				<Reveal as="h2" className="mt-10 text-center font-sans text-xl font-medium uppercase tracking-wider text-brand-blue">
@@ -157,7 +157,7 @@ export default function WhyWorkWithUs() {
 				</RevealStagger>
 
 				<Reveal y={DISTANCE.card} duration={DURATION.card} className="relative mt-8">
-					<Image src="/assets/images/photo-4.webp" alt="" width={1000} height={700} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
+					<Image src="/assets/images/photo-4.webp" alt="Luxury waterfront Fire Island home with private pool" width={1000} height={700} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
 					<div className="absolute -left-4 -top-6 flex h-28 w-28 items-center justify-center rounded-full bg-brand-yellow p-1 shadow-lg">
 						<Image src="/assets/images/logo-seal-blue.svg" alt="" width={120} height={120} className="h-full w-full -rotate-[10deg]" />
 					</div>
@@ -176,8 +176,8 @@ export default function WhyWorkWithUs() {
 				</RevealStagger>
 
 				<Reveal y={DISTANCE.card} duration={DURATION.card} className="mt-8 grid grid-cols-2 gap-4">
-					<Image src="/assets/images/photo-1.webp" alt="" width={800} height={600} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
-					<Image src="/assets/images/photo-5.webp" alt="" width={500} height={500} className="mt-10 h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
+					<Image src="/assets/images/photo-1.webp" alt="Charming blue beach cottage on Fire Island" width={800} height={600} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
+					<Image src="/assets/images/photo-5.webp" alt="Aerial view of a Fire Island beach home surrounded by dunes" width={500} height={500} className="mt-10 h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
 				</Reveal>
 
 				<RevealStagger className="mt-10 flex flex-wrap justify-center gap-x-4 gap-y-4">
