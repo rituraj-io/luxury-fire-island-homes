@@ -172,7 +172,7 @@ export default function Properties() {
 				</Reveal>
 			</div>
 
-			<Reveal y={DISTANCE.card} duration={DURATION.card} delay={0.1} className="relative mx-auto mt-10 w-full max-w-site px-12 md:px-16">
+			<Reveal y={0} duration={0.8} delay={0.05} className="relative mx-auto mt-10 w-full max-w-site px-12 md:px-16">
 				<button
 					type="button"
 					aria-label="Previous properties"
