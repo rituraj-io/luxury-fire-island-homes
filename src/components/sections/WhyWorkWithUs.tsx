@@ -58,7 +58,7 @@ export default function WhyWorkWithUs() {
 				</div>
 
 				{/* Right cluster */}
-				<div className="absolute right-[2%] top-[48%] aspect-[346/533] w-[346px]">
+				<div className="absolute right-[0.5%] top-[44%] aspect-[346/533] w-[346px]">
 					{/* photo-4 — pool house with badge */}
 					<div className="pointer-events-auto absolute left-[-8%] top-0 z-20 w-[96%] -rotate-[3deg]">
 						<Image src="/assets/images/photo-4.jpg" alt="" width={800} height={600} className="h-auto w-full border-4 border-white shadow-xl transition-transform duration-300 hover:scale-[1.03]" />
@@ -80,17 +80,17 @@ export default function WhyWorkWithUs() {
 			<div className="relative mx-auto hidden w-full max-w-[1280px] px-8 py-24 min-[992px]:block">
 				{/* Top text block — pushed to the right edge, text left-aligned */}
 				<div className="relative ml-auto mr-0 w-[55%] pr-[2%]">
-					<div className="space-y-5 text-left font-body text-[15px] leading-relaxed text-black">
+					<div className="space-y-5 text-left font-body text-[16px] leading-relaxed text-black">
 						<p>
 							We take the stress, guesswork, and frustration out of buying, selling, or renting in Fire Island so you can focus on what actually matters: soaking up beach days, making memories, and living your best barefoot life.
 						</p>
 						<p>
 							Fire Island is all about community, and so are we. Our team lives across the island in places like{" "}
-							<span className="font-medium underline">Ocean Beach</span>,{" "}
-							<span className="font-medium underline">Ocean Bay Park</span>, and{" "}
-							<span className="font-medium underline">Seaview</span>, and we know every nook of Fire Island from{" "}
-							<span className="font-medium underline">Kismet</span> to{" "}
-							<span className="font-medium underline">Davis Park</span>.
+							<a href="#">Ocean Beach</a>,{" "}
+							<a href="#">Ocean Bay Park</a>, and{" "}
+							<a href="#">Seaview</a>, and we know every nook of Fire Island from{" "}
+							<a href="#">Kismet</a> to{" "}
+							<a href="#">Davis Park</a>.
 						</p>
 						<p>
 							Some of us have been coming here for generations, others visited once and never left. Together, we bring decades of experience, deep roots, and unique insight that makes every move feel personal.
@@ -103,15 +103,15 @@ export default function WhyWorkWithUs() {
 				    in a narrower inner div, left-aligned to the start. Buttons
 				    span the full outer width, flex-row aligned to the start. */}
 				<div className="relative ml-auto mr-[146px] mt-[200px] flex w-[55%] flex-col">
-					<div className="w-full max-w-[420px] space-y-5 text-left font-body text-[15px] leading-relaxed text-black">
+					<div className="w-full max-w-[420px] space-y-5 text-left font-body text-[16px] leading-relaxed text-black">
 						<p>
 							At Luxury Fire Island Homes, we&apos;re more than real estate. We&apos;re part of the island&apos;s creative heartbeat.
 						</p>
 						<p>
-							Our Ocean Bay Park office is home to <span className="font-medium italic underline">Art in the Park</span>, a seasonal gallery that showcases Fire Island artists and brings the community together through creativity, connection, and culture.
+							Our Ocean Bay Park office is home to <a href="#" className="italic">Art in the Park</a>, a seasonal gallery that showcases Fire Island artists and brings the community together through creativity, connection, and culture.
 						</p>
 						<p>
-							With <span className="font-medium italic">100+ five-star reviews</span>, regular features in the Fire Island News, and relationships that run deep across the island, you&apos;re not just working with a real estate team — you&apos;re stepping into the Fire Island community, guided by people who truly know it.
+							With <a href="#">100+ five-star reviews</a>, regular features in the Fire Island News, and relationships that run deep across the island, you&apos;re not just working with a real estate team — you&apos;re stepping into the Fire Island community, guided by people who truly know it.
 						</p>
 					</div>
 
@@ -120,7 +120,7 @@ export default function WhyWorkWithUs() {
 							<Link
 								key={c.href}
 								href={c.href}
-								className="bg-[#d67229] px-8 py-3 font-sans text-[14px] font-medium tracking-wider text-white transition hover:brightness-95"
+								className="bg-[#d67229] px-8 py-3 font-sans text-[16px] font-medium tracking-wider text-white transition hover:brightness-95"
 							>
 								{c.label}
 							</Link>
@@ -143,17 +143,17 @@ export default function WhyWorkWithUs() {
 					</span>
 				</h2>
 
-				<div className="mt-6 space-y-5 text-left font-body text-[15px] leading-relaxed text-black">
+				<div className="mt-6 space-y-5 text-left font-body text-[16px] leading-relaxed text-black">
 					<p>
 						We take the stress, guesswork, and frustration out of buying, selling, or renting in Fire Island so you can focus on what actually matters: soaking up beach days, making memories, and living your best barefoot life.
 					</p>
 					<p>
 						Fire Island is all about community, and so are we. Our team lives across the island in places like{" "}
-						<span className="font-medium underline">Ocean Beach</span>,{" "}
-						<span className="font-medium underline">Ocean Bay Park</span>, and{" "}
-						<span className="font-medium underline">Seaview</span>, and we know every nook of Fire Island from{" "}
-						<span className="font-medium underline">Kismet</span> to{" "}
-						<span className="font-medium underline">Davis Park</span>.
+						<a href="#">Ocean Beach</a>,{" "}
+						<a href="#">Ocean Bay Park</a>, and{" "}
+						<a href="#">Seaview</a>, and we know every nook of Fire Island from{" "}
+						<a href="#">Kismet</a> to{" "}
+						<a href="#">Davis Park</a>.
 					</p>
 					<p>
 						Some of us have been coming here for generations, others visited once and never left. Together, we bring decades of experience, deep roots, and unique insight that makes every move feel personal.
@@ -167,15 +167,15 @@ export default function WhyWorkWithUs() {
 					</div>
 				</div>
 
-				<div className="mt-8 space-y-5 text-left font-body text-[15px] leading-relaxed text-black">
+				<div className="mt-8 space-y-5 text-left font-body text-[16px] leading-relaxed text-black">
 					<p>
 						At Luxury Fire Island Homes, we&apos;re more than real estate. We&apos;re part of the island&apos;s creative heartbeat.
 					</p>
 					<p>
-						Our Ocean Bay Park office is home to <span className="font-medium italic underline">Art in the Park</span>, a seasonal gallery that showcases Fire Island artists and brings the community together through creativity, connection, and culture.
+						Our Ocean Bay Park office is home to <a href="#" className="italic">Art in the Park</a>, a seasonal gallery that showcases Fire Island artists and brings the community together through creativity, connection, and culture.
 					</p>
 					<p>
-						With <span className="font-medium italic">100+ five-star reviews</span>, regular features in the Fire Island News, and relationships that run deep across the island, you&apos;re not just working with a real estate team — you&apos;re stepping into the Fire Island community, guided by people who truly know it.
+						With <a href="#">100+ five-star reviews</a>, regular features in the Fire Island News, and relationships that run deep across the island, you&apos;re not just working with a real estate team — you&apos;re stepping into the Fire Island community, guided by people who truly know it.
 					</p>
 				</div>
 
@@ -186,7 +186,7 @@ export default function WhyWorkWithUs() {
 
 				<div className="mt-10 flex flex-wrap justify-center gap-4">
 					{CTAS.map((c) => (
-						<Link key={c.href} href={c.href} className="bg-[#d67229] px-8 py-3 text-center font-sans text-[14px] font-medium tracking-wider text-white transition hover:brightness-95 max-[575px]:w-[calc(50%-0.5rem)]">
+						<Link key={c.href} href={c.href} className="bg-[#d67229] px-8 py-3 text-center font-sans text-[16px] font-medium tracking-wider text-white transition hover:brightness-95 max-[575px]:w-[calc(50%-0.5rem)]">
 							{c.label}
 						</Link>
 					))}

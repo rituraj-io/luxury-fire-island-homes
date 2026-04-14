@@ -225,7 +225,7 @@ export default function Events() {
 			<div className="mx-auto mt-10 flex w-full max-w-site justify-center px-4">
 				<Link
 					href="#events"
-					className="bg-brand-yellow px-5 py-3 font-sans text-[14px] font-medium tracking-wider text-[#1a5c89] transition hover:brightness-95"
+					className="bg-brand-yellow px-5 py-3 font-sans text-[16px] font-medium tracking-wider text-[#1a5c89] transition hover:brightness-95"
 				>
 					SEE ALL EVENTS
 				</Link>

@@ -106,7 +106,7 @@ function CardBody({ tab }: { tab: Tab }) {
 				{tab.label}
 			</h3>
 
-			<div className="mt-6 space-y-4 font-body text-[15px] leading-relaxed text-black">
+			<div className="mt-6 space-y-4 font-body text-[16px] leading-relaxed text-black">
 				{tab.body.map((p, i) => (
 					<p key={i}>{p}</p>
 				))}
@@ -114,7 +114,7 @@ function CardBody({ tab }: { tab: Tab }) {
 
 			<Link
 				href="#listings"
-				className="mt-8 inline-block bg-brand-blue px-5 py-3 font-sans text-[14px] font-medium tracking-wider text-white transition hover:brightness-110"
+				className="mt-8 inline-block bg-brand-blue px-5 py-3 font-sans text-[16px] font-medium tracking-wider text-white transition hover:brightness-110"
 			>
 				BROWSE OUR LISTINGS
 			</Link>

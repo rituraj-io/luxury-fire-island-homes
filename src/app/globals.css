@@ -32,3 +32,15 @@ body {
 .font-body {
   font-family: var(--font-inter), system-ui, sans-serif;
 }
+
+
+/* Inline links inside paragraphs — brand blue, semibold, no underline. */
+p a {
+  color: #1a5c89 !important;
+  font-weight: 600 !important;
+  font-style: italic !important;
+  text-decoration: none !important;
+}
+p a:hover {
+  text-decoration: underline;
+}
