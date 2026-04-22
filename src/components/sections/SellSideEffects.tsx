@@ -17,7 +17,7 @@ type Risk = {
 
 const RISKS: Risk[] = [
   {
-    image: "/assets/images/placeholder.svg",
+    image: "/assets/images/sell-warnings/warning-1.webp",
     alt: "",
     body: (
       <>
@@ -27,7 +27,7 @@ const RISKS: Risk[] = [
     ),
   },
   {
-    image: "/assets/images/placeholder.svg",
+    image: "/assets/images/sell-warnings/warning-2.webp",
     alt: "",
     body: (
       <>
@@ -37,7 +37,7 @@ const RISKS: Risk[] = [
     ),
   },
   {
-    image: "/assets/images/placeholder.svg",
+    image: "/assets/images/sell-warnings/warning-3.webp",
     alt: "",
     body: (
       <>
@@ -47,7 +47,7 @@ const RISKS: Risk[] = [
     ),
   },
   {
-    image: "/assets/images/placeholder.svg",
+    image: "/assets/images/sell-warnings/warning-4.webp",
     alt: "",
     body: (
       <>
@@ -57,7 +57,7 @@ const RISKS: Risk[] = [
     ),
   },
   {
-    image: "/assets/images/placeholder.svg",
+    image: "/assets/images/sell-warnings/warning-5.webp",
     alt: "",
     body: (
       <>

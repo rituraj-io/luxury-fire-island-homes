@@ -34,6 +34,18 @@ body {
 }
 
 
+/* Marquee keyframes — used by the testimonials rail on the rental page.
+   Half-distance travel + duplicated content = seamless right-to-left loop. */
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none !important; }
+}
+
+
 /* Inline links inside paragraphs — brand blue, semibold, no underline. */
 p a {
   color: #1a5c89 !important;
