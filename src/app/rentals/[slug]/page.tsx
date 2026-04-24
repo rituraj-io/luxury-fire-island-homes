@@ -1,16 +1,15 @@
-// Rental detail page. Dynamic route — slug resolves to a Rental record.
-// Content is hardcoded via src/lib/rentals.ts for now; sections are built
-// out one by one on top of this shell.
+// Rental detail page — dynamic route per rental listing.
+// Composition is data-driven; optional sections (neighborhood, details, full
+// overview) auto-hide when the rental record doesn't carry that data.
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Nav from "@/components/sections/Nav";
-import RentalHero from "@/components/sections/RentalHero";
+import PropertyGallery from "@/components/sections/PropertyGallery";
+import PropertyOverview from "@/components/sections/PropertyOverview";
+import PropertyNeighborhood from "@/components/sections/PropertyNeighborhood";
+import PropertyDetails from "@/components/sections/PropertyDetails";
 import Properties from "@/components/sections/Properties";
-import WelcomeVideo from "@/components/sections/WelcomeVideo";
-import RentalDifference from "@/components/sections/RentalDifference";
-import RentalExpectations from "@/components/sections/RentalExpectations";
-import RentalTruth from "@/components/sections/RentalTruth";
 import RentalReviews from "@/components/sections/RentalReviews";
 import RentalInquiry from "@/components/sections/RentalInquiry";
 import CallBanner from "@/components/sections/CallBanner";
@@ -55,17 +54,29 @@ export default async function RentalPage({
 		<>
 			<Nav />
 			<main className="flex flex-col">
-				<RentalHero rental={rental} />
+				<PropertyGallery rental={rental} />
+				<PropertyOverview rental={rental} />
+				<PropertyNeighborhood rental={rental} />
+				<PropertyDetails rental={rental} />
 				<Properties
 					background="bg-[#dbe2ec]"
 					cta={{ label: "SEE ALL CURRENT RENTALS", href: "/rentals" }}
 				/>
-				<WelcomeVideo />
-				<RentalDifference />
-				<RentalExpectations />
-				<RentalTruth />
 				<RentalReviews />
-				<RentalInquiry />
+				<section id="inquiry">
+					<RentalInquiry
+						heading={`Ready to book ${rental.name}?`}
+						subline={
+							<>
+								Tell us your dates and we&apos;ll lock it in.
+								<br />
+								{rental.referenceCode && (
+									<>Mention #{rental.referenceCode} so we know exactly which home.</>
+								)}
+							</>
+						}
+					/>
+				</section>
 				<CallBanner />
 			</main>
 			<Footer />

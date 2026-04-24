@@ -10,12 +10,14 @@ const INPUT = "w-full bg-white/80 px-4 py-3 font-sans text-[16px] text-brand-blu
 
 
 type Props = {
+	heading?: ReactNode;
 	subline?: ReactNode;
 	postSubmit?: ReactNode;
 };
 
 
 export default function RentalInquiry({
+	heading = "Tell us about your dream Vacation Home",
 	subline = (
 		<>
 			Let&apos;s make it happen!
@@ -29,7 +31,7 @@ export default function RentalInquiry({
 		<section className="w-full bg-[#f8f4ec] py-16 md:py-20">
 			<div className="mx-auto flex w-full max-w-[720px] flex-col items-center px-4 text-center md:px-8">
 				<Reveal as="h2" className="font-script text-[36px] leading-[1.15] text-brand-blue md:text-[44px]">
-					Tell us about your dream Vacation Home
+					{heading}
 				</Reveal>
 
 				<Reveal as="p" delay={0.05} className="mx-auto mt-4 max-w-[360px] font-sans text-[18px] font-semibold leading-snug text-brand-blue md:text-xl">
