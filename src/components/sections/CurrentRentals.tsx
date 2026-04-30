@@ -9,14 +9,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Reveal from "@/components/motion/Reveal";
 import RevealStagger from "@/components/motion/RevealStagger";
 import RevealItem from "@/components/motion/RevealItem";
 import { DISTANCE, DURATION, STAGGER } from "@/lib/motion";
+import type { FeaturedProperty } from "@/lib/cms";
 
 
 type RentalCard = {
+	id: string;
 	code: string;
 	price: string;
 	address: string;
@@ -24,23 +26,41 @@ type RentalCard = {
 };
 
 
-const RENTALS: RentalCard[] = [
-	{ code: "OB919E",  price: "$7,500/week",  address: "Ocean Beach, Fire Island, NY 11770",     image: "/assets/images/placeholder.svg" },
-	{ code: "OBP24S",  price: "$10,000/week", address: "Ocean Bay Park, Fire Island, NY 11770",  image: "/assets/images/placeholder.svg" },
-	{ code: "OBP7C",   price: "$6,500/week",  address: "Ocean Bay Park, Fire Island, NY 11770",  image: "/assets/images/placeholder.svg" },
-	{ code: "OB46B",   price: "$5,500/week",  address: "Ocean Beach, NY 11770",                  image: "/assets/images/placeholder.svg" },
-	{ code: "OB647OB", price: "$7,500/week",  address: "Ocean Beach, NY 11770",                  image: "/assets/images/placeholder.svg" },
-	{ code: "OBP38E",  price: "$10,000/week", address: "Ocean Bay Park, NY 11770",               image: "/assets/images/placeholder.svg" },
-];
-
-
 const PAGE_SIZE = 6;
 
 
-export default function CurrentRentals() {
+function toCard(p: FeaturedProperty): RentalCard {
+	return {
+		id: p.id,
+		code: p.title,
+		price: p.priceLabel,
+		address: p.locationLabel,
+		image: p.thumbnailUrl,
+	};
+}
+
+
+type Props = { items: FeaturedProperty[] };
+
+
+export default function CurrentRentals({ items }: Props) {
 	const [query, setQuery] = useState("");
 	const [visible, setVisible] = useState(PAGE_SIZE);
-	const shown = RENTALS.slice(0, visible);
+
+	const cards = useMemo(() => items.map(toCard), [items]);
+	const filtered = useMemo(() => {
+		const q = query.trim().toLowerCase();
+		if (!q) return cards;
+		return cards.filter(
+			(c) =>
+				c.code.toLowerCase().includes(q) ||
+				c.address.toLowerCase().includes(q) ||
+				c.price.toLowerCase().includes(q)
+		);
+	}, [cards, query]);
+
+	const shown = filtered.slice(0, visible);
+	const canLoadMore = visible < filtered.length;
 
 	return (
 		<section className="w-full bg-[#f8f4ec] pb-16 pt-[calc(144px+env(safe-area-inset-top)+2rem)] md:pb-20 md:pt-[calc(144px+env(safe-area-inset-top)+3rem)]">
@@ -115,36 +135,48 @@ export default function CurrentRentals() {
 					className="mx-auto mt-12 grid max-w-[420px] grid-cols-1 gap-6 sm:max-w-[780px] sm:grid-cols-2 md:mt-14 md:max-w-site md:grid-cols-3"
 				>
 					{shown.map((r) => (
-						<RevealItem key={r.code} y={DISTANCE.card} duration={DURATION.card}>
-							<article className="bg-white shadow-sm">
+						<RevealItem key={r.id} y={DISTANCE.card} duration={DURATION.card}>
+							<Link
+								href={`/rentals/${r.id}`}
+								className="group block bg-white shadow-sm transition-shadow duration-300 ease-out hover:shadow-xl"
+							>
 								<div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-200">
 									<Image
 										src={r.image}
 										alt={`${r.code} — ${r.address}`}
 										fill
 										sizes="(min-width: 768px) 360px, (min-width: 640px) 45vw, 90vw"
-										className="object-cover"
+										className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
 									/>
+									<div className="pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-500 ease-out group-hover:bg-black/25" />
 								</div>
-								<div className="px-5 py-4 text-center">
+								<div className="px-5 py-4 text-center transition-transform duration-300 ease-out group-hover:-translate-y-1">
 									<p className="font-sans text-[20px] font-medium text-black">{r.price}</p>
 									<p className="mt-1.5 font-sans text-[16px] text-black">{r.code}</p>
 									<p className="mt-0.5 font-sans text-[16px] text-black/80">{r.address}</p>
 								</div>
-							</article>
+							</Link>
 						</RevealItem>
 					))}
 				</RevealStagger>
 
-				<Reveal y={DISTANCE.text} duration={DURATION.text} className="mt-10 flex justify-center md:mt-12">
-					<button
-						type="button"
-						onClick={() => setVisible((v) => v + PAGE_SIZE)}
-						className="cursor-pointer border-2 border-brand-blue bg-transparent px-8 py-3 font-sans text-[16px] font-medium uppercase tracking-wider text-brand-blue transition hover:bg-brand-blue/5"
-					>
-						Load More
-					</button>
-				</Reveal>
+				{shown.length === 0 ? (
+					<Reveal y={DISTANCE.text} duration={DURATION.text} className="mt-10 text-center font-body text-[16px] text-black/70">
+						No rentals match your search.
+					</Reveal>
+				) : null}
+
+				{canLoadMore ? (
+					<Reveal y={DISTANCE.text} duration={DURATION.text} className="mt-10 flex justify-center md:mt-12">
+						<button
+							type="button"
+							onClick={() => setVisible((v) => v + PAGE_SIZE)}
+							className="cursor-pointer border-2 border-brand-blue bg-transparent px-8 py-3 font-sans text-[16px] font-medium uppercase tracking-wider text-brand-blue transition hover:bg-brand-blue/5"
+						>
+							Load More
+						</button>
+					</Reveal>
+				) : null}
 			</div>
 		</section>
 	);
