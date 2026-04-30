@@ -80,7 +80,7 @@ function CardBody({ tab }: { tab: Tab }) {
 			</div>
 
 			<Link
-				href="#listings"
+				href="/current-rentals"
 				className="mt-8 inline-block bg-brand-blue px-5 py-3 font-sans text-[16px] font-medium tracking-wider text-white transition hover:brightness-110"
 			>
 				BROWSE OUR LISTINGS

@@ -14,8 +14,8 @@ import { paragraphs, type WhyWorkSection } from "@/lib/cms";
 
 
 const CTAS = [
-	{ href: "#about", label: "ABOUT US" },
-	{ href: "#events", label: "SEE EVENTS" },
+	{ href: "/#about", label: "ABOUT US" },
+	{ href: "/#events", label: "SEE EVENTS" },
 	{ href: "#reviews", label: "OUR REVIEWS" },
 ];
 

@@ -9,18 +9,18 @@ import Reveal from "@/components/motion/Reveal";
 
 const I_WANT_TO = [
 	{ label: "BUY A HOME", href: "#buy" },
-	{ label: "SELL YOUR HOME", href: "#sell" },
-	{ label: "RENT A HOME", href: "#rent" },
-	{ label: "MANAGEMENT SERVICES", href: "#manage" },
-	{ label: "INQUIRE", href: "#inquire" },
+	{ label: "SELL YOUR HOME", href: "/sell" },
+	{ label: "RENT A HOME", href: "/current-rentals" },
+	{ label: "MANAGEMENT SERVICES", href: "/manage" },
+	{ label: "INQUIRE", href: "/#contact" },
 ];
 
 
 const MORE_INFO = [
-	{ label: "COMMUNITY", href: "#community" },
-	{ label: "ABOUT", href: "#about" },
-	{ label: "EVENTS", href: "#events" },
-	{ label: "JOBS", href: "#jobs" },
+	{ label: "COMMUNITY", href: "/area" },
+	{ label: "ABOUT", href: "/#about" },
+	{ label: "EVENTS", href: "/#events" },
+	{ label: "JOBS", href: "/join" },
 ];
 
 

@@ -12,7 +12,8 @@ import { paragraphs, type AboutSection } from '@/lib/cms';
 
 
 // Static destinations for the four CMS-driven CTA strings (in API order).
-const ANSWER_HREFS = ['/current-rentals', '/buy', '/sell', '/manage'];
+// "BUY" has no listing page yet — placeholder anchor until one is built.
+const ANSWER_HREFS = ['/current-rentals', '#buy', '/sell', '/manage'];
 
 
 type Props = { data: AboutSection };
@@ -22,7 +23,7 @@ export default function About({ data }: Props) {
 	const { title1, title2, answers, question, description1, description2 } = data;
 
 	return (
-		<section className="w-full bg-[#f8f4ec] py-16 md:py-24">
+		<section id="about" className="w-full bg-[#f8f4ec] py-16 md:py-24">
 			<div className="mx-auto grid max-w-[768px] gap-12 px-4 md:px-8 min-[992px]:max-w-site min-[992px]:grid-cols-2 min-[992px]:gap-10">
 				{/* Left column — collage, reveals as a whole unit */}
 				<Reveal y={DISTANCE.card} duration={DURATION.card} className="relative mx-auto w-full max-w-[500px]">

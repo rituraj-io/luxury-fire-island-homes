@@ -26,7 +26,7 @@ export default function CallBanner() {
 	const bgY = useTransform(scrollYProgress, [0, 1], ["-10%", "12%"]);
 
 	return (
-		<section ref={sectionRef} className="relative w-full overflow-hidden">
+		<section id="contact" ref={sectionRef} className="relative w-full overflow-hidden">
 			<div className="relative aspect-[797/190] min-h-[340px] w-full md:min-h-0">
 				<motion.div
 					className="absolute inset-0"

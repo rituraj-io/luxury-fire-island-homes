@@ -120,7 +120,7 @@ export default function Events({ events }: Props) {
 	const stride = cardW + GAP;
 
 	return (
-		<section className="w-full bg-brand-orange py-16 md:py-20">
+		<section id="events" className="w-full bg-brand-orange py-16 md:py-20">
 			<div className="mx-auto w-full max-w-site px-4 md:px-8">
 				<Reveal as="h2" className="text-center font-sans text-xl font-medium uppercase tracking-wider text-white md:text-2xl">
 					<span className="mr-2 inline-block font-script text-[52px] font-normal normal-case leading-none tracking-normal">
@@ -204,7 +204,7 @@ export default function Events({ events }: Props) {
 
 			<Reveal className="mx-auto mt-10 flex w-full max-w-site justify-center px-4">
 				<Link
-					href="#events"
+					href="/#events"
 					className="bg-brand-yellow px-5 py-3 font-sans text-[16px] font-medium tracking-wider text-[#1a5c89] transition hover:brightness-95"
 				>
 					SEE ALL EVENTS

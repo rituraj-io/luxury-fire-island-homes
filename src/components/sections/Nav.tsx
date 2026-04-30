@@ -13,15 +13,15 @@ import { DURATION, EASE } from "@/lib/motion";
 
 const LEFT_LINKS = [
   { label: "BUY", href: "#buy" },
-  { label: "SELL", href: "#sell" },
-  { label: "RENT", href: "#rent" },
-  { label: "MANAGE", href: "#manage" },
+  { label: "SELL", href: "/sell" },
+  { label: "RENT", href: "/current-rentals" },
+  { label: "MANAGE", href: "/manage" },
 ];
 
 
 const RIGHT_LINKS = [
-  { label: "+ COMMUNITY", href: "#community" },
-  { label: "+ ABOUT", href: "#about" },
+  { label: "+ COMMUNITY", href: "/area" },
+  { label: "+ ABOUT", href: "/#about" },
 ];
 
 
@@ -78,7 +78,7 @@ export default function Nav() {
             </Link>
           ))}
           <Link
-            href="#contact"
+            href="/#contact"
             className="bg-brand-orange px-6 py-3 font-medium tracking-widest text-white hover:brightness-95"
           >
             CONTACT
@@ -117,7 +117,7 @@ export default function Nav() {
               ))}
               <li>
                 <Link
-                  href="#contact"
+                  href="/#contact"
                   onClick={() => setOpen(false)}
                   className="inline-block bg-brand-orange px-6 py-3 font-medium tracking-widest text-white"
                 >

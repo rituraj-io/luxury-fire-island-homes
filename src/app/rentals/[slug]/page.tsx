@@ -97,7 +97,7 @@ export default async function RentalPage({
 				<PropertyDetails rental={rental} />
 				<Properties
 					background="bg-[#dbe2ec]"
-					cta={{ label: "SEE ALL CURRENT RENTALS", href: "/rentals" }}
+					cta={{ label: "SEE ALL CURRENT RENTALS", href: "/current-rentals" }}
 					featured={featured}
 				/>
 				<RentalReviews />
