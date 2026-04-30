@@ -17,7 +17,7 @@ const I_WANT_TO = [
 
 
 const MORE_INFO = [
-	{ label: "COMMUNITY", href: "/area" },
+	{ label: "COMMUNITY", href: "#" },
 	{ label: "ABOUT", href: "/#about" },
 	{ label: "EVENTS", href: "/#events" },
 	{ label: "JOBS", href: "/join" },

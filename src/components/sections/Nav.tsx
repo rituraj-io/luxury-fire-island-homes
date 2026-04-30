@@ -20,7 +20,7 @@ const LEFT_LINKS = [
 
 
 const RIGHT_LINKS = [
-  { label: "+ COMMUNITY", href: "/area" },
+  { label: "+ COMMUNITY", href: "#" },
   { label: "+ ABOUT", href: "/#about" },
 ];
 
