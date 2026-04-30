@@ -8,10 +8,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Reveal from "@/components/motion/Reveal";
-import { DISTANCE, DURATION } from "@/lib/motion";
+import type { CmsEvent } from "@/lib/cms";
 
 
 type EventItem = {
@@ -20,66 +20,45 @@ type EventItem = {
 	day: string;
 	title: string;
 	location: string;
-	time: string;
-	price: string;
 };
-
-
-const EVENTS: EventItem[] = [
-	{
-		image: "/assets/images/placeholder.svg",
-		month: "MARCH",
-		day: "17",
-		title: "St Patricks Bar Crawl",
-		location: "Kismet",
-		time: "3pm",
-		price: "$30",
-	},
-	{
-		image: "/assets/images/placeholder.svg",
-		month: "APRIL",
-		day: "4",
-		title: "Easter Egg Hunt",
-		location: "Davis Park",
-		time: "8am-11am",
-		price: "FREE",
-	},
-	{
-		image: "/assets/images/placeholder.svg",
-		month: "APRIL",
-		day: "22",
-		title: "Community Bagel Breakfast",
-		location: "Ocean Beach Office",
-		time: "8am-11am",
-		price: "FREE",
-	},
-	{
-		image: "/assets/images/placeholder.svg",
-		month: "MAY",
-		day: "10",
-		title: "Beach Cleanup Day",
-		location: "Ocean Bay Park",
-		time: "9am-12pm",
-		price: "FREE",
-	},
-	{
-		image: "/assets/images/placeholder.svg",
-		month: "MAY",
-		day: "25",
-		title: "Memorial Day BBQ",
-		location: "Seaview",
-		time: "12pm-4pm",
-		price: "$20",
-	},
-];
 
 
 const GAP = 20;
 
 
-export default function Events() {
-	const total = EVENTS.length;
-	const strip = [...EVENTS, ...EVENTS];
+// Renders date in UTC so server and client agree (events are date-keyed,
+// not time-keyed — exact local time isn't shown on the badge).
+function formatDateBadge(iso: string): { month: string; day: string } {
+	const d = new Date(iso);
+	const month = d
+		.toLocaleString("en-US", { month: "long", timeZone: "UTC" })
+		.toUpperCase();
+	const day = String(d.getUTCDate());
+	return { month, day };
+}
+
+
+function mapEvents(items: CmsEvent[]): EventItem[] {
+	return items.map((e) => {
+		const { month, day } = formatDateBadge(e.startDate);
+		return {
+			image: e.imageUrl,
+			month,
+			day,
+			title: e.eventTitle,
+			location: e.location,
+		};
+	});
+}
+
+
+type Props = { events: CmsEvent[] };
+
+
+export default function Events({ events }: Props) {
+	const items = useMemo(() => mapEvents(events), [events]);
+	const total = items.length;
+	const strip = useMemo(() => [...items, ...items], [items]);
 
 	const [index, setIndex] = useState(0);
 	const [animate, setAnimate] = useState(true);
@@ -186,17 +165,18 @@ export default function Events() {
 									width: cardW ? `${cardW}px` : `${100 / visible}%`,
 									marginRight: i === strip.length - 1 ? 0 : GAP,
 								}}
-								className="shrink-0 bg-white"
+								className="group shrink-0 bg-white shadow-sm transition-shadow duration-300 ease-out hover:shadow-xl"
 							>
 								<div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-200">
 									<Image
 										src={e.image}
 										alt={e.title}
 										fill
-										className="object-cover"
+										className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
 										sizes="(min-width: 1024px) 360px, (min-width: 640px) 45vw, 90vw"
 									/>
-									<div className="absolute bottom-2 left-2 bg-white px-3 py-2 text-center shadow">
+									<div className="pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-500 ease-out group-hover:bg-black/25" />
+									<div className="absolute bottom-2 left-2 z-10 bg-white px-3 py-2 text-center shadow">
 										<div className="font-sans text-[11px] font-medium tracking-wider text-brand-blue">
 											{e.month}
 										</div>
@@ -206,16 +186,14 @@ export default function Events() {
 									</div>
 								</div>
 
-								<div className="px-5 pb-5 pt-5">
-									<p className="font-sans text-[16px] font-medium text-brand-blue">
-										{e.title}
-									</p>
-									<p className="mt-1 font-sans text-[14px] text-brand-blue">
-										{e.location}
-									</p>
-									<div className="mt-4 flex items-center justify-between font-sans text-[14px] text-brand-blue">
-										<span>{e.time}</span>
-										<span>{e.price}</span>
+								<div className="bg-white transition-transform duration-300 ease-out group-hover:-translate-y-2">
+									<div className="px-5 pb-5 pt-5">
+										<p className="font-sans text-[16px] font-medium text-brand-blue">
+											{e.title}
+										</p>
+										<p className="mt-1 font-sans text-[14px] text-brand-blue">
+											{e.location}
+										</p>
 									</div>
 								</div>
 							</li>

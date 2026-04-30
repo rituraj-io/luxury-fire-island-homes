@@ -14,10 +14,40 @@ import RentalReviews from "@/components/sections/RentalReviews";
 import RentalInquiry from "@/components/sections/RentalInquiry";
 import CallBanner from "@/components/sections/CallBanner";
 import Footer from "@/components/sections/Footer";
-import { getAllRentalSlugs, getRentalBySlug } from "@/lib/rentals";
+import { getAllRentalSlugs, getRentalBySlug, type Rental } from "@/lib/rentals";
+import { findFeaturedById, getHomeCms, type FeaturedProperty } from "@/lib/cms";
 
 
 type Params = { slug: string };
+
+
+// Build a minimal Rental shape from a CMS featured-property record. The
+// detail template's optional sections (rooms, neighborhood, pricing tiers,
+// rules) hide themselves when the data isn't present.
+function rentalFromFeatured(p: FeaturedProperty): Rental {
+	return {
+		slug: p.id,
+		name: p.title,
+		location: p.locationLabel,
+		pricePerWeek: p.priceLabel,
+		beds: p.bedrooms,
+		baths: p.bathrooms,
+		sleeps: p.bedrooms * 2,
+		heroImage: p.thumbnailUrl,
+		heroAlt: p.title,
+		gallery: [{ src: p.thumbnailUrl, alt: p.title }],
+	};
+}
+
+
+// Resolves a slug to a Rental: local data first, then CMS featured arrays.
+async function resolveRental(slug: string): Promise<Rental | null> {
+	const local = getRentalBySlug(slug);
+	if (local) return local;
+
+	const featured = await findFeaturedById(slug);
+	return featured ? rentalFromFeatured(featured) : null;
+}
 
 
 export function generateStaticParams(): Params[] {
@@ -31,7 +61,7 @@ export async function generateMetadata({
 	params: Promise<Params>;
 }): Promise<Metadata> {
 	const { slug } = await params;
-	const rental = getRentalBySlug(slug);
+	const rental = await resolveRental(slug);
 	if (!rental) return {};
 	return {
 		title: rental.name,
@@ -47,8 +77,15 @@ export default async function RentalPage({
 	params: Promise<Params>;
 }) {
 	const { slug } = await params;
-	const rental = getRentalBySlug(slug);
+	const [rental, home] = await Promise.all([
+		resolveRental(slug),
+		getHomeCms().catch(() => null),
+	]);
 	if (!rental) notFound();
+
+	// Surface other CMS-featured rentals on the carousel; filter the current
+	// listing out so the user doesn't see the page they're already on.
+	const featured = home?.sections.section2.featured.filter((p) => p.id !== slug);
 
 	return (
 		<>
@@ -61,6 +98,7 @@ export default async function RentalPage({
 				<Properties
 					background="bg-[#dbe2ec]"
 					cta={{ label: "SEE ALL CURRENT RENTALS", href: "/rentals" }}
+					featured={featured}
 				/>
 				<RentalReviews />
 				<section id="inquiry">

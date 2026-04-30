@@ -13,6 +13,7 @@ import RentalReviews from "@/components/sections/RentalReviews";
 import SideEffects from "@/components/sections/SideEffects";
 import RentalInquiry from "@/components/sections/RentalInquiry";
 import CallBanner from "@/components/sections/CallBanner";
+import { getHomeCms } from "@/lib/cms";
 
 
 type Props = { params: Promise<{ slug: string }> };
@@ -20,13 +21,15 @@ type Props = { params: Promise<{ slug: string }> };
 
 export default async function BuyPropertyPage({ params }: Props) {
   const { slug } = await params;
+  const home = await getHomeCms().catch(() => null);
+  const featured = home?.sections.section2.featured.filter((p) => p.id !== slug);
 
   return (
     <>
       <Nav />
       <main data-slug={slug} className="flex flex-col">
         <PropertyHero />
-        <Properties background="bg-[#dbe2ec]" />
+        <Properties background="bg-[#dbe2ec]" featured={featured} />
         <WhereWeComeIn />
         <WhatYouGet />
         <HomeBase />

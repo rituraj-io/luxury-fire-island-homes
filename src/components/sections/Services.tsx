@@ -6,53 +6,16 @@
 // into an accordion: the active tab expands to reveal the card inline
 // via a smooth grid-rows height animation.
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import Reveal from "@/components/motion/Reveal";
 import RevealStagger from "@/components/motion/RevealStagger";
 import RevealItem from "@/components/motion/RevealItem";
 import { DISTANCE, DURATION } from "@/lib/motion";
+import { paragraphs, type AccordionItem } from "@/lib/cms";
 
 
 type Tab = { key: string; label: string; body: string[] };
-
-
-const TABS: Tab[] = [
-	{
-		key: "rent-ours",
-		label: "RENT ONE OF OURS",
-		body: [
-			"We match you with the perfect Fire Island stay, connecting you with homeowners who actually care (think spotless homes and 5-star hospitality, not a broken beach chair and half a roll of toilet paper). Whether you're here for a weekend, a month, or the whole summer, we'll find a place that fits you (and even Fido's) vibe — so you can focus on the beach, not the booking stress.",
-			"P.S. Don't wait on these... they usually book up fast.",
-		],
-	},
-	{
-		key: "buy",
-		label: "BUY A HOME",
-		body: [
-			"We help you find your perfect slice of Fire Island—whether it's a cozy beach bungalow, a luxury waterfront oasis, or something in between. But we're not just here to show you houses; we're here to welcome you into the island, the community, and the laid-back lifestyle that makes this place special.",
-			"With us, you'll get expert (and local) guidance, access to hidden gems, and a stress-free buying experience—zero pushy sales tactics, just real advice. And when you need the best AC guy on the island (because, trust us, you will), we've got you covered. Oh, and every home you buy with us comes with a built-in Fire Island tour guide (aka us), a home warranty, discounted attorney services, and the lowest interest rate possible.",
-			"Try finding another team that can top that—we'll wait. 😉",
-		],
-	},
-	{
-		key: "sell",
-		label: "SELL A HOME",
-		body: [
-			"Selling your home shouldn't be stressful - unless you count us trying to convince you to stay—we don't want to lose you!",
-			"But if you must go, we make sure you walk away with the most money in your pocket. Our expert pricing strategies, next-level marketing, and Certified Home Program attract serious buyers and eliminate surprises that might scare them off. We communicate, we hustle, and we get the job done—so you can move on to your next chapter without the headache.",
-			"You will be missed, though 😞",
-		],
-	},
-	{
-		key: "rent-out",
-		label: "RENT OUT YOURS",
-		body: [
-			"Nothing like handing over your keys to a rowdy group of 25-year-olds who treat your home like a frat house… Yeah, let's not do that.",
-			"When you rent with us, we personally vet every guest to make sure they treat your home the way you would. We handle everything—marketing, bookings, renter screening, and even cleaning and maintenance (if you'd like)—so you can actually enjoy the perks of renting without the stress. Whether it's filling your calendar with great renters or handling the little details, we make the process seamless and worry-free.",
-		],
-	},
-];
 
 
 const LABEL_BASE =
@@ -127,9 +90,21 @@ function CardBody({ tab }: { tab: Tab }) {
 }
 
 
-export default function Services() {
-	const [active, setActive] = useState(TABS[0].key);
-	const activeTab = TABS.find((t) => t.key === active) ?? TABS[0];
+type Props = { accordion: AccordionItem[] };
+
+
+export default function Services({ accordion }: Props) {
+	const tabs = useMemo<Tab[]>(
+		() =>
+			accordion.map((a, i) => ({
+				key: String(i),
+				label: a.title,
+				body: paragraphs(a.description),
+			})),
+		[accordion]
+	);
+
+	const [active, setActive] = useState(tabs[0]?.key ?? "0");
 
 	return (
 		<section className="w-full bg-[#dbe2ec] py-10 md:py-14">
@@ -137,7 +112,7 @@ export default function Services() {
 				{/* ---------- Desktop (>=992px) ---------- */}
 				<div className="hidden gap-16 min-[992px]:grid min-[992px]:grid-cols-2">
 					<RevealStagger as="ul" className="flex flex-col justify-center self-center">
-						{TABS.map((t, i) => {
+						{tabs.map((t, i) => {
 							const isActive = t.key === active;
 							return (
 								<RevealItem
@@ -159,7 +134,7 @@ export default function Services() {
 					</RevealStagger>
 
 					<Reveal y={DISTANCE.card} duration={DURATION.card} delay={0.15} className="grid items-center self-center [grid-template-areas:'stack']">
-						{TABS.map((t) => {
+						{tabs.map((t) => {
 							const isActive = t.key === active;
 							return (
 								<div
@@ -180,7 +155,7 @@ export default function Services() {
 
 				{/* ---------- Mobile accordion (<992px) ---------- */}
 				<RevealStagger as="ul" className="flex flex-col min-[992px]:hidden">
-					{TABS.map((t, i) => {
+					{tabs.map((t, i) => {
 						const isActive = t.key === active;
 						return (
 							<RevealItem

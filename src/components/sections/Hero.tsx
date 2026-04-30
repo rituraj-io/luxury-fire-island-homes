@@ -12,6 +12,7 @@ import { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import HeroIntroItem, { HERO_TIMELINE } from "@/components/motion/HeroIntro";
 import { DISTANCE, DURATION, EASE, useFinePointer } from "@/lib/motion";
+import type { HeroSection } from "@/lib/cms";
 
 
 const HELP_LINKS = [
@@ -21,7 +22,21 @@ const HELP_LINKS = [
 ];
 
 
-export default function Hero() {
+type Props = { hero: HeroSection };
+
+
+// Preserves the original two-line layout: splits the CMS headline at " OF "
+// so each half lands on its own line. Falls back to a single line if the
+// split point isn't present.
+function splitHeadline(headline: string): [string, string | null] {
+	const match = headline.match(/^(.*?)\s+(OF\s+.+)$/i);
+	if (!match) return [headline, null];
+	return [match[1], match[2]];
+}
+
+
+export default function Hero({ hero }: Props) {
+	const [line1, line2] = splitHeadline(hero.headline);
 	const sectionRef = useRef<HTMLElement>(null);
 	const reduced = useReducedMotion();
 	const finePointer = useFinePointer();
@@ -57,7 +72,7 @@ export default function Hero() {
 				}}
 			>
 				<Image
-					src="/assets/images/hero-image.webp"
+					src={hero.imageUrl}
 					alt="Aerial view of Fire Island beach"
 					fill
 					priority
@@ -75,7 +90,7 @@ export default function Hero() {
 						{/* Headline */}
 						<div className="shrink-0 text-white drop-shadow-lg">
 							<HeroIntroItem as="p" delay={HERO_TIMELINE.eyebrow} className="ml-4 font-script text-5xl md:text-6xl">
-								Welcome to
+								{hero.eyebrow}
 							</HeroIntroItem>
 							<HeroIntroItem
 								as="h1"
@@ -89,9 +104,13 @@ export default function Hero() {
 										display: "inline",
 									}}
 								>
-									THE SANDIER SIDE
-									<br />
-									OF NEW YORK
+									{line1}
+									{line2 ? (
+										<>
+											<br />
+											{line2}
+										</>
+									) : null}
 								</span>
 							</HeroIntroItem>
 						</div>

@@ -10,6 +10,7 @@ import RevealStagger from "@/components/motion/RevealStagger";
 import RevealItem from "@/components/motion/RevealItem";
 import Bob from "@/components/motion/Bob";
 import { DISTANCE, DURATION } from "@/lib/motion";
+import { paragraphs, type WhyWorkSection } from "@/lib/cms";
 
 
 const CTAS = [
@@ -19,7 +20,14 @@ const CTAS = [
 ];
 
 
-export default function WhyWorkWithUs() {
+type Props = { data: WhyWorkSection };
+
+
+export default function WhyWorkWithUs({ data }: Props) {
+	const { title } = data;
+	const desc1 = paragraphs(data.description1);
+	const desc2 = paragraphs(data.description2);
+
 	return (
 		<section className="relative w-full overflow-hidden bg-[#f8f4ec]">
 			{/* ---------- Desktop ---------- */}
@@ -49,12 +57,11 @@ export default function WhyWorkWithUs() {
 
 					<div className="absolute left-[66%] top-[16%] z-30 text-center">
 						<h2 className="font-sans text-xl font-medium uppercase tracking-wider text-brand-blue">
-							Why work
-							<br />
-							with{" "}
+							{title.preStyle}{" "}
 							<span className="inline-block font-script text-[52px] font-normal normal-case leading-none tracking-normal">
-								Us?
+								{title.styled}
 							</span>
+							{title.postStyle ? <> {title.postStyle}</> : null}
 						</h2>
 					</div>
 				</Reveal>
@@ -81,34 +88,17 @@ export default function WhyWorkWithUs() {
 			<div className="relative mx-auto hidden w-full max-w-[1280px] px-8 py-24 min-[992px]:block">
 				<RevealStagger className="relative ml-auto mr-0 w-[55%] pr-[2%]">
 					<RevealItem className="space-y-5 text-left font-body text-[16px] leading-relaxed text-black">
-						<p>
-							We take the stress, guesswork, and frustration out of buying, selling, or renting in Fire Island so you can focus on what actually matters: soaking up beach days, making memories, and living your best barefoot life.
-						</p>
-						<p>
-							Fire Island is all about community, and so are we. Our team lives across the island in places like{" "}
-							<a href="#">Ocean Beach</a>,{" "}
-							<a href="#">Ocean Bay Park</a>, and{" "}
-							<a href="#">Seaview</a>, and we know every nook of Fire Island from{" "}
-							<a href="#">Kismet</a> to{" "}
-							<a href="#">Davis Park</a>.
-						</p>
-						<p>
-							Some of us have been coming here for generations, others visited once and never left. Together, we bring decades of experience, deep roots, and unique insight that makes every move feel personal.
-						</p>
+						{desc1.map((p, i) => (
+							<p key={i}>{p}</p>
+						))}
 					</RevealItem>
 				</RevealStagger>
 
 				<RevealStagger className="relative ml-auto mr-[146px] mt-[200px] flex w-[55%] flex-col">
 					<RevealItem className="w-full max-w-[420px] space-y-5 text-left font-body text-[16px] leading-relaxed text-black">
-						<p>
-							At Luxury Fire Island Homes, we&apos;re more than real estate. We&apos;re part of the island&apos;s creative heartbeat.
-						</p>
-						<p>
-							Our Ocean Bay Park office is home to <a href="#" className="italic">Art in the Park</a>, a seasonal gallery that showcases Fire Island artists and brings the community together through creativity, connection, and culture.
-						</p>
-						<p>
-							With <a href="#">100+ five-star reviews</a>, regular features in the Fire Island News, and relationships that run deep across the island, you&apos;re not just working with a real estate team — you&apos;re stepping into the Fire Island community, guided by people who truly know it.
-						</p>
+						{desc2.map((p, i) => (
+							<p key={i}>{p}</p>
+						))}
 					</RevealItem>
 
 					<RevealItem className="mt-10 flex w-full flex-row flex-wrap justify-start gap-4">
@@ -133,27 +123,17 @@ export default function WhyWorkWithUs() {
 				</Reveal>
 
 				<Reveal as="h2" className="mt-10 text-center font-sans text-xl font-medium uppercase tracking-wider text-brand-blue">
-					Why work with{" "}
+					{title.preStyle}{" "}
 					<span className="inline-block font-script text-[52px] font-normal normal-case leading-none tracking-normal">
-						Us?
+						{title.styled}
 					</span>
+					{title.postStyle ? <> {title.postStyle}</> : null}
 				</Reveal>
 
 				<RevealStagger className="mt-6 space-y-5 text-left font-body text-[16px] leading-relaxed text-black">
-					<RevealItem as="p">
-						We take the stress, guesswork, and frustration out of buying, selling, or renting in Fire Island so you can focus on what actually matters: soaking up beach days, making memories, and living your best barefoot life.
-					</RevealItem>
-					<RevealItem as="p">
-						Fire Island is all about community, and so are we. Our team lives across the island in places like{" "}
-						<a href="#">Ocean Beach</a>,{" "}
-						<a href="#">Ocean Bay Park</a>, and{" "}
-						<a href="#">Seaview</a>, and we know every nook of Fire Island from{" "}
-						<a href="#">Kismet</a> to{" "}
-						<a href="#">Davis Park</a>.
-					</RevealItem>
-					<RevealItem as="p">
-						Some of us have been coming here for generations, others visited once and never left. Together, we bring decades of experience, deep roots, and unique insight that makes every move feel personal.
-					</RevealItem>
+					{desc1.map((p, i) => (
+						<RevealItem key={i} as="p">{p}</RevealItem>
+					))}
 				</RevealStagger>
 
 				<Reveal y={DISTANCE.card} duration={DURATION.card} className="relative mt-8">
@@ -164,15 +144,9 @@ export default function WhyWorkWithUs() {
 				</Reveal>
 
 				<RevealStagger className="mt-8 space-y-5 text-left font-body text-[16px] leading-relaxed text-black">
-					<RevealItem as="p">
-						At Luxury Fire Island Homes, we&apos;re more than real estate. We&apos;re part of the island&apos;s creative heartbeat.
-					</RevealItem>
-					<RevealItem as="p">
-						Our Ocean Bay Park office is home to <a href="#" className="italic">Art in the Park</a>, a seasonal gallery that showcases Fire Island artists and brings the community together through creativity, connection, and culture.
-					</RevealItem>
-					<RevealItem as="p">
-						With <a href="#">100+ five-star reviews</a>, regular features in the Fire Island News, and relationships that run deep across the island, you&apos;re not just working with a real estate team — you&apos;re stepping into the Fire Island community, guided by people who truly know it.
-					</RevealItem>
+					{desc2.map((p, i) => (
+						<RevealItem key={i} as="p">{p}</RevealItem>
+					))}
 				</RevealStagger>
 
 				<Reveal y={DISTANCE.card} duration={DURATION.card} className="mt-8 grid grid-cols-2 gap-4">

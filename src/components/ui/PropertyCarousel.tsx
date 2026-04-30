@@ -127,26 +127,31 @@ export default function PropertyCarousel({ items }: { items: PropertyCard[] }) {
 										src={p.image}
 										alt={p.title}
 										fill
-										className="object-cover"
+										className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
 										sizes="(min-width: 1024px) 360px, (min-width: 640px) 45vw, 90vw"
 									/>
-									<span className="absolute bottom-3 left-3 font-sans text-xl font-medium text-white drop-shadow md:text-2xl">
+									{/* Slight overlay that fades in on hover. */}
+									<div className="pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-500 ease-out group-hover:bg-black/25" />
+									<span className="absolute bottom-3 left-3 z-10 font-sans text-xl font-medium text-white drop-shadow md:text-2xl">
 										{p.price}
 									</span>
 								</div>
 
-								<div className="px-5 pb-4 pt-4">
-									<p className="font-sans text-[15px] font-medium text-black">{p.title}</p>
-									<p className="mt-1 font-sans text-[14px] text-black/70">{p.location}</p>
-								</div>
+								{/* Text + stats slide up together on hover for a subtle "lift". */}
+								<div className="bg-white transition-transform duration-300 ease-out group-hover:-translate-y-2">
+									<div className="px-5 pb-4 pt-4">
+										<p className="font-sans text-[15px] font-medium text-black">{p.title}</p>
+										<p className="mt-1 font-sans text-[14px] text-black/70">{p.location}</p>
+									</div>
 
-								<div className="grid grid-cols-3 divide-x divide-black/10 border-t border-black/10">
-									{p.stats.map((s) => (
-										<div key={s.label} className="flex flex-col items-center justify-center py-3 text-black">
-											<span className="font-sans text-lg font-medium">{s.value}</span>
-											<span className="mt-0.5 font-sans text-[11px] tracking-wider text-black/60">{s.label}</span>
-										</div>
-									))}
+									<div className="grid grid-cols-3 divide-x divide-black/10 border-t border-black/10">
+										{p.stats.map((s) => (
+											<div key={s.label} className="flex flex-col items-center justify-center py-3 text-black">
+												<span className="font-sans text-lg font-medium">{s.value}</span>
+												<span className="mt-0.5 font-sans text-[11px] tracking-wider text-black/60">{s.label}</span>
+											</div>
+										))}
+									</div>
 								</div>
 							</>
 						);
@@ -158,7 +163,7 @@ export default function PropertyCarousel({ items }: { items: PropertyCard[] }) {
 									width: cardW ? `${cardW}px` : `${100 / visible}%`,
 									marginRight: i === strip.length - 1 ? 0 : GAP,
 								}}
-								className="shrink-0 bg-white shadow-sm"
+								className="group shrink-0 bg-white shadow-sm transition-shadow duration-300 ease-out hover:shadow-xl"
 							>
 								{p.href ? (
 									<Link href={p.href} className="block">

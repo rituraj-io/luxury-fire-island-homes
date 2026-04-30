@@ -8,6 +8,7 @@
 import Link from "next/link";
 import Reveal from "@/components/motion/Reveal";
 import PropertyCarousel, { type PropertyCard } from "@/components/ui/PropertyCarousel";
+import type { FeaturedProperty } from "@/lib/cms";
 
 
 const PROPERTIES: PropertyCard[] = [
@@ -76,13 +77,35 @@ type Props = {
 	// Optional CTA rendered under the carousel (shown on the rental page,
 	// omitted on the homepage).
 	cta?: { label: string; href: string };
+	// CMS-managed featured properties. When omitted, falls back to PROPERTIES
+	// so non-homepage callers (rentals/buy slug pages) keep working.
+	featured?: FeaturedProperty[];
 };
+
+
+function mapFeatured(items: FeaturedProperty[]): PropertyCard[] {
+	return items.map((p) => ({
+		image: p.thumbnailUrl,
+		price: p.priceLabel,
+		title: p.title,
+		location: p.locationLabel,
+		stats: [
+			{ label: "BEDS", value: String(p.bedrooms) },
+			{ label: "BATHS", value: String(p.bathrooms) },
+			{ label: "SQFT", value: p.areaSqFt.toLocaleString() },
+		],
+		href: p.propertyType === "Rent" ? `/rentals/${p.id}` : `/buy/${p.id}`,
+	}));
+}
 
 
 export default function Properties({
 	background = "bg-brand-yellow",
 	cta,
+	featured,
 }: Props = {}) {
+	const items = featured && featured.length > 0 ? mapFeatured(featured) : PROPERTIES;
+
 	return (
 		<section className={`w-full ${background} py-16 md:py-20`}>
 			<div className="mx-auto w-full max-w-site px-4 md:px-8">
@@ -95,7 +118,7 @@ export default function Properties({
 			</div>
 
 			<Reveal y={0} duration={0.8} delay={0.05} className="mt-10">
-				<PropertyCarousel items={PROPERTIES} />
+				<PropertyCarousel items={items} />
 			</Reveal>
 
 			{cta ? (
