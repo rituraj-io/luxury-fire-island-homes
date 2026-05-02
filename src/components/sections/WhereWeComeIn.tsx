@@ -196,7 +196,7 @@ export default function WhereWeComeIn({ data }: { data?: BuySection2 }) {
               <Cluster4 ctx={ctx} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card} className="-mt-6">
-              <ClosingCta />
+              <ClosingCta heading={closingHeading} />
             </Reveal>
           </div>
         </div>
