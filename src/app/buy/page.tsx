@@ -10,7 +10,7 @@
 
 import Nav from "@/components/sections/Nav";
 import BuyHero from "@/components/sections/BuyHero";
-import CurrentBuy from "@/components/sections/CurrentBuy";
+import Properties from "@/components/sections/Properties";
 import WhereWeComeIn from "@/components/sections/WhereWeComeIn";
 import WhatYouGet from "@/components/sections/WhatYouGet";
 import HomeBase from "@/components/sections/HomeBase";
@@ -42,7 +42,11 @@ export default async function BuyPage() {
 			<Nav />
 			<main className="flex flex-col">
 				{hero ? <BuyHero hero={hero} /> : null}
-				<CurrentBuy items={items} />
+				<Properties
+					background="bg-[#dbe2ec]"
+					featured={items}
+					cta={{ label: "SEE ALL HOMES FOR SALE", href: "/homes-for-sale" }}
+				/>
 				<WhereWeComeIn data={buy?.section2} />
 				<WhatYouGet data={buy?.section3} />
 				<HomeBase data={buy?.section4} />
