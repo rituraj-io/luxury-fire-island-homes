@@ -45,6 +45,11 @@ body {
   .marquee-track { animation: none !important; }
 }
 
+/* Pause marquee whenever the user hovers anywhere inside its viewport.
+   `!important` is required because the Marquee component sets the `animation`
+   shorthand inline, which would otherwise reset play-state to "running". */
+.marquee-pause-on-hover:hover .marquee-track { animation-play-state: paused !important; }
+
 
 /* Inline links inside paragraphs — brand blue, semibold, no underline. */
 p a {

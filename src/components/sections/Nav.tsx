@@ -12,15 +12,15 @@ import { DURATION, EASE } from "@/lib/motion";
 
 
 const LEFT_LINKS = [
-  { label: "BUY", href: "#buy" },
+  { label: "BUY", href: "/buy" },
   { label: "SELL", href: "/sell" },
-  { label: "RENT", href: "/current-rentals" },
+  { label: "RENT", href: "/rent" },
   { label: "MANAGE", href: "/manage" },
 ];
 
 
 const RIGHT_LINKS = [
-  { label: "+ COMMUNITY", href: "#" },
+  { label: "+ COMMUNITY", href: "/area" },
   { label: "+ ABOUT", href: "/#about" },
 ];
 

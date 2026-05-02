@@ -16,7 +16,7 @@ import type { HeroSection } from "@/lib/cms";
 
 
 const HELP_LINKS = [
-	{ label: "I'm Buying", href: "#buy" },
+	{ label: "I'm Buying", href: "/buy" },
 	{ label: "I'm Selling", href: "/sell" },
 	{ label: "I'm Renting", href: "/current-rentals" },
 ];
@@ -87,15 +87,17 @@ export default function Hero({ hero }: Props) {
 					{/* Hero content container. On desktop the headline sits at its natural width
 					    and the card butts right up against it with a small gap. */}
 					<div className="mx-auto flex w-full max-w-[576px] flex-col items-stretch justify-center gap-6 px-4 pb-12 pt-20 min-h-[520px] min-[992px]:min-h-[640px] min-[992px]:max-w-[1000px] min-[992px]:flex-row min-[992px]:items-center min-[992px]:justify-between min-[992px]:gap-6 min-[992px]:px-8">
-						{/* Headline */}
-						<div className="shrink-0 text-white drop-shadow-lg">
+						{/* Headline — fills the room left over by the card. Long titles
+						    wrap inside this slot; the homepage's two-line layout still
+						    renders identically because splitHeadline emits its own <br/>. */}
+						<div className="min-w-0 flex-1 text-white drop-shadow-lg">
 							<HeroIntroItem as="p" delay={HERO_TIMELINE.eyebrow} className="ml-4 font-script text-5xl md:text-6xl">
 								{hero.eyebrow}
 							</HeroIntroItem>
 							<HeroIntroItem
 								as="h1"
 								delay={HERO_TIMELINE.headline}
-								className="mt-2 font-display text-5xl leading-[1.05] tracking-[0.06em] sm:text-6xl md:text-7xl min-[992px]:whitespace-nowrap"
+								className="mt-2 font-display text-5xl leading-[1.05] tracking-[0.06em] sm:text-6xl md:text-7xl"
 							>
 								<span
 									style={{

@@ -34,6 +34,7 @@ import Reveal from "@/components/motion/Reveal";
 import RevealItem from "@/components/motion/RevealItem";
 import RevealStagger from "@/components/motion/RevealStagger";
 import { DISTANCE, DURATION, useFinePointer } from "@/lib/motion";
+import { paragraphs, type BuySection2 } from "@/lib/cms";
 
 
 const CTAS = [
@@ -43,58 +44,47 @@ const CTAS = [
 ];
 
 
-const BOXES = {
+type Box = { heading: string; body: React.ReactNode };
+
+
+// Default copy used when the CMS hasn't supplied this section (e.g. the buy
+// detail route, which doesn't currently fetch buy CMS).
+const FALLBACK = {
+  intro: [
+    "You’re ready to make the move—from summer renter to homeowner. From “Where are we staying this year?” to “Let’s head to our place.”",
+    "But finding your perfect second home can feel like a full-time job. Listings go fast. Information is vague. And most agents don’t actually know Fire Island.",
+  ],
+  headline: "That’s Where We Come In.",
   specialty: {
     heading: "FIRE ISLAND IS OUR SPECIALTY",
-    body: (
-      <p>
-        At Luxury Fire Island Homes, we specialize in helping buyers like you
-        make smart, strategic second-home purchases on the island. Whether
-        you&apos;re looking for low-maintenance or legacy-worthy, we&apos;ll
-        help you find the place that fits your{" "}
-        <span className="font-semibold italic">family and your lifestyle</span>.
-      </p>
-    ),
+    body: "At Luxury Fire Island Homes, we specialize in helping buyers like you make smart, strategic second-home purchases on the island. Whether you’re looking for low-maintenance or legacy-worthy, we’ll help you find the place that fits your family and your lifestyle.",
   },
   believe: {
     heading: "WE BELIEVE IN...",
-    body: (
-      <>
-        <p>
-          <span className="font-semibold">X</span> No drama.
-          <br />
-          <span className="font-semibold">X</span> No guesswork.
-        </p>
-        <p>
-          Just a smooth path to your forever summer—and smart savings along the
-          way. Because yes, we&apos;ve partnered with a lender who can get you
-          the best rates and perks—so you can spend less on closing costs and
-          more on a better beach cruiser.
-        </p>
-      </>
-    ),
+    body: "X No drama. \nX No guesswork. \n\nJust a smooth path to your forever summer—and smart savings along the way. Because yes, we’ve partnered with a lender who can get you the best rates and perks—so you can spend less on closing costs and more on a better beach cruiser.",
   },
   lifers: {
     heading: "WHY OUR BUYERS BECOME LIFERS",
-    body: (
-      <>
-        <p>
-          We don&apos;t just want you to close—we want you to walk away saying,
-          &ldquo;That was the easiest, most fun experience I&apos;ve ever
-          had... and honestly, I can&apos;t wait to see [insert agent&apos;s
-          name] again on the island.&rdquo;
-        </p>
-        <p>That&apos;s the energy we&apos;re going for.</p>
-        <p>
-          So yes—we&apos;ve packed in more value, support, peace of mind (and
-          jokes) than anyone else on Fire Island. You&apos;ll love us so much,
-          we&apos;ll probably end up in your iPhone favorites (just below your
-          dog walker and your go-to wine shop).
-        </p>
-      </>
-    ),
+    body: "We don’t just want you to close—we want you to walk away saying, “That was the easiest, most fun experience I’ve ever had... and honestly, I can’t wait to see [insert agent’s name] again on the island.”\n\nThat’s the energy we’re going for.\n\nSo yes—we’ve packed in more value, support, peace of mind (and jokes) than anyone else on Fire Island. You’ll love us so much, we’ll probably end up in your iPhone favorites (just below your dog walker and your go-to wine shop).",
   },
-} as const;
+  closingHeading: "Want to see more?",
+};
+
+
+// Render a CMS description string as paragraphs. Splits on blank lines and
+// preserves single-line breaks within a paragraph as <br/>.
+function renderDescription(text: string) {
+  return paragraphs(text).map((p, i) => (
+    <p key={i}>
+      {p.split("\n").map((line, j, all) => (
+        <span key={j}>
+          {line}
+          {j < all.length - 1 ? <br /> : null}
+        </span>
+      ))}
+    </p>
+  ));
+}
 
 
 // Parallax magnitudes (px). Each photo's vertical travel across the section's
@@ -115,7 +105,7 @@ type ParallaxCtx = {
 };
 
 
-export default function WhereWeComeIn() {
+export default function WhereWeComeIn({ data }: { data?: BuySection2 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
   const finePointer = useFinePointer();
@@ -128,6 +118,28 @@ export default function WhereWeComeIn() {
 
   const ctx: ParallaxCtx = { scrollProgress: scrollYProgress, enabled: parallaxEnabled };
 
+  const introPara = data ? paragraphs(data.introText) : FALLBACK.intro;
+  const headline = data?.headline ?? FALLBACK.headline;
+  const specialty: Box = data
+    ? {
+        heading: data.leftSection.text1.title.toUpperCase(),
+        body: renderDescription(data.leftSection.text1.description),
+      }
+    : { heading: FALLBACK.specialty.heading, body: renderDescription(FALLBACK.specialty.body) };
+  const believe: Box = data
+    ? {
+        heading: data.rightSection.text1.title.toUpperCase(),
+        body: renderDescription(data.rightSection.text1.description),
+      }
+    : { heading: FALLBACK.believe.heading, body: renderDescription(FALLBACK.believe.body) };
+  const lifers: Box = data
+    ? {
+        heading: data.leftSection.text2.title.toUpperCase(),
+        body: renderDescription(data.leftSection.text2.description),
+      }
+    : { heading: FALLBACK.lifers.heading, body: renderDescription(FALLBACK.lifers.body) };
+  const closingHeading = data?.rightSection.text2.title || FALLBACK.closingHeading;
+
   return (
     <section
       ref={sectionRef}
@@ -135,23 +147,18 @@ export default function WhereWeComeIn() {
     >
       {/* ---- Intro paragraphs ---- */}
       <RevealStagger className="mx-auto w-full max-w-[440px] px-4 text-center font-body text-[15px] leading-relaxed text-black md:text-[16px]">
-        <RevealItem as="p">
-          You&apos;re ready to make the move—from summer renter to homeowner.
-          From &ldquo;Where are we staying this year?&rdquo; to &ldquo;Let&apos;s
-          head to our place.&rdquo;
-        </RevealItem>
-        <RevealItem as="p" className="mt-5">
-          But finding your perfect second home can feel like a full-time job.
-          Listings go fast. Information is vague. And most agents don&apos;t
-          actually know Fire Island.
-        </RevealItem>
+        {introPara.map((p, i) => (
+          <RevealItem key={i} as="p" className={i === 0 ? "" : "mt-5"}>
+            {p}
+          </RevealItem>
+        ))}
       </RevealStagger>
 
       <Reveal
         as="h2"
         className="mx-auto mt-10 text-center font-script text-[44px] leading-none text-brand-blue md:mt-12 md:text-[64px]"
       >
-        That&apos;s Where We Come In.
+        {headline}
       </Reveal>
 
       {/* ======================================================== */}
@@ -167,13 +174,13 @@ export default function WhereWeComeIn() {
               <Cluster1 ctx={ctx} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card}>
-              <BlueBox {...BOXES.specialty} />
+              <BlueBox {...specialty} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card}>
               <Cluster3 ctx={ctx} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card}>
-              <BlueBox {...BOXES.lifers} />
+              <BlueBox {...lifers} />
             </Reveal>
           </div>
 
@@ -183,7 +190,7 @@ export default function WhereWeComeIn() {
               <Cluster2 ctx={ctx} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card} className="mt-6">
-              <BlueBox {...BOXES.believe} />
+              <BlueBox {...believe} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card}>
               <Cluster4 ctx={ctx} />
@@ -207,7 +214,7 @@ export default function WhereWeComeIn() {
             <Cluster1 ctx={ctx} />
           </Reveal>
           <Reveal y={DISTANCE.card} duration={DURATION.card}>
-            <BlueBox {...BOXES.specialty} />
+            <BlueBox {...specialty} />
           </Reveal>
           {/* mt-20 compensates for Cluster2's top-[-22%] overhang (blue-door
               extends ~83px above the cluster box) so it doesn't collide with
@@ -216,7 +223,7 @@ export default function WhereWeComeIn() {
             <Cluster2 ctx={ctx} />
           </Reveal>
           <Reveal y={DISTANCE.card} duration={DURATION.card}>
-            <BlueBox {...BOXES.believe} />
+            <BlueBox {...believe} />
           </Reveal>
           {/* Nudge Cluster3 down into the gap below it — adds breathing room
               above, tightens spacing to the "WHY OUR BUYERS BECOME LIFERS"
@@ -225,13 +232,13 @@ export default function WhereWeComeIn() {
             <Cluster3 ctx={ctx} />
           </Reveal>
           <Reveal y={DISTANCE.card} duration={DURATION.card} className="-mt-4">
-            <BlueBox {...BOXES.lifers} />
+            <BlueBox {...lifers} />
           </Reveal>
           <Reveal y={DISTANCE.card} duration={DURATION.card}>
             <Cluster4 ctx={ctx} />
           </Reveal>
           <Reveal y={DISTANCE.card} duration={DURATION.card}>
-            <ClosingCta />
+            <ClosingCta heading={closingHeading} />
           </Reveal>
         </div>
       </div>
@@ -288,11 +295,11 @@ function BlueBox({
 }
 
 
-function ClosingCta() {
+function ClosingCta({ heading }: { heading: string }) {
   return (
     <div>
       <h3 className="font-script text-[40px] leading-none text-brand-blue md:text-[52px]">
-        Want to see more?
+        {heading}
       </h3>
       <div className="mt-5 flex flex-col items-start gap-3">
         {CTAS.map((c) => (

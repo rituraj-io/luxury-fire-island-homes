@@ -1,6 +1,10 @@
-// Current Rentals landing page. Listings come from CMS — preferring the
-// dedicated rent endpoint when populated, falling back to the home featured
-// array (filtered to rent-type properties).
+// Current Rentals — slim search-results page. Heading + filter row + 6-card
+// grid + Load More. Marketing copy lives on /rent; this page is intentionally
+// just the listings view.
+//
+// Listings come from CMS, preferring the dedicated rent endpoint when
+// populated, falling back to the home featured array filtered to rent-type
+// properties.
 
 import Nav from "@/components/sections/Nav";
 import CurrentRentals from "@/components/sections/CurrentRentals";

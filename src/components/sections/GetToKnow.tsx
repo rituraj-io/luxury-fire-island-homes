@@ -3,7 +3,7 @@
 // "GREAT SOUTH BAY" / "ATLANTIC OCEAN" labels and wave decorations) is
 // a single asset rendered as-is.
 
-import Image from "next/image";
+import FireIslandMap from "@/components/ui/FireIslandMap";
 import Reveal from "@/components/motion/Reveal";
 import RevealStagger from "@/components/motion/RevealStagger";
 import RevealItem from "@/components/motion/RevealItem";
@@ -23,14 +23,7 @@ export default function GetToKnow() {
 			</RevealStagger>
 
 			<Reveal y={DISTANCE.card} duration={DURATION.card} delay={0.1} className="mx-auto mt-8 w-full max-w-[1400px] px-4 md:mt-10 md:px-8">
-				<Image
-					src="/assets/images/ocean-waves-graphic.webp"
-					alt="Illustrated map of Fire Island showing its communities from Robert Moses to Davis Park"
-					width={1600}
-					height={500}
-					className="h-auto w-full"
-					priority={false}
-				/>
+				<FireIslandMap />
 			</Reveal>
 
 			<Reveal delay={0.15} className="mx-auto mt-8 w-full max-w-[900px] px-4 md:mt-10 md:px-8">

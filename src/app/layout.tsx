@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import SmoothScroll from "@/components/motion/SmoothScroll";
+import BFCacheGuard from "@/components/system/BFCacheGuard";
 import { OG_IMAGE, SITE, SITE_URL } from "@/lib/site";
 
 
@@ -257,6 +258,7 @@ export default function RootLayout({
 			className={`${gopher.variable} ${redondo.variable} ${sofia.variable} ${inter.variable} h-full antialiased`}
 		>
 			<body className="min-h-full flex flex-col">
+				<BFCacheGuard />
 				<SmoothScroll>{children}</SmoothScroll>
 				<Script
 					id="ld-json-organization"

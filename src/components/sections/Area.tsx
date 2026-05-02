@@ -8,9 +8,9 @@
 // will be layered in once confirmed — the card currently renders a default
 // (Seaview) so the visual layout matches the design.
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import FireIslandMap from "@/components/ui/FireIslandMap";
 import Reveal from "@/components/motion/Reveal";
 import { DISTANCE, DURATION } from "@/lib/motion";
 
@@ -111,14 +111,7 @@ export default function Area() {
 				className="mx-auto mt-10 w-full max-w-[1400px] px-4 md:mt-14 md:px-8"
 			>
 				<div className="relative min-[992px]:pb-36 min-[1200px]:pb-44">
-					<Image
-						src="/assets/images/ocean-waves-graphic.webp"
-						alt="Illustrated map of Fire Island showing its communities from Robert Moses to Davis Park"
-						width={1600}
-						height={500}
-						className="h-auto w-full"
-						priority={false}
-					/>
+					<FireIslandMap />
 
 					<NeighborhoodCard data={active} />
 				</div>

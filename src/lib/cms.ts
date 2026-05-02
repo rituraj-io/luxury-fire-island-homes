@@ -93,14 +93,87 @@ export async function getHomeCms(): Promise<HomeCms> {
 
 // Buy / Rent landing-page CMS. Both expose a `section1.featured` array of
 // FeaturedProperty using the same shape as home.section2.featured.
+export type BuySection2BlueBox = {
+	text1: { title: string; description: string };
+	text2: { title: string; description: string };
+	image1Url: string;
+	image2Url: string;
+};
+
+export type BuySection2 = {
+	headline: string;
+	introText: string;
+	leftSection: BuySection2BlueBox;
+	rightSection: BuySection2BlueBox;
+};
+
+export type BuySection3Card = {
+	mainText: string;
+	hoverText: string;
+};
+
+export type BuySection3 = {
+	headline: string;
+	bottomline: string;
+	cards: BuySection3Card[];
+};
+
+export type BuySection4 = {
+	headline: string;
+	description: string;
+	imageUrls: string[];
+	bottomline: string;
+};
+
+export type BuySection7Card = {
+	text: string;
+	description: string;
+	imageUrl: string;
+};
+
+export type BuySection7 = {
+	headline: string;
+	introText: string;
+	note: string;
+	cards: BuySection7Card[];
+};
+
 export type BuyCms = {
 	version: number;
 	textFormat: string;
 	heroSection: HeroSection;
 	section1: { featured: FeaturedProperty[] };
-	// Other sections (section2..section7) are landing-page marketing content
-	// and aren't typed strictly here yet — they're consumed page-by-page.
-	[k: string]: unknown;
+	section2?: BuySection2;
+	section3?: BuySection3;
+	section4?: BuySection4;
+	section5?: Record<string, unknown>;
+	section6?: Record<string, unknown>;
+	section7?: BuySection7;
+};
+
+export type RentSection2 = {
+	headline: string;
+	videoUrl: string;
+	introText: string;
+};
+
+export type RentSection3 = {
+	text1: { title: string; description: string };
+	text2: { title: string; description: string };
+	image1Url: string;
+	image2Url: string;
+};
+
+export type RentSection4 = {
+	headline: string;
+	introText: string;
+	benefits: string[];
+};
+
+export type RentSection5 = {
+	headline: string;
+	description: string;
+	bottomline: string;
 };
 
 export type RentCms = {
@@ -108,7 +181,12 @@ export type RentCms = {
 	textFormat: string;
 	heroSection: HeroSection;
 	section1: { featured: FeaturedProperty[] };
-	[k: string]: unknown;
+	section2?: RentSection2;
+	section3?: RentSection3;
+	section4?: RentSection4;
+	section5?: RentSection5;
+	section6?: Record<string, unknown>;
+	section7?: Record<string, unknown>;
 };
 
 
