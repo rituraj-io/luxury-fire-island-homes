@@ -80,6 +80,10 @@ type Props = {
 	// CMS-managed featured properties. When omitted, falls back to PROPERTIES
 	// so non-homepage callers (rentals/buy slug pages) keep working.
 	featured?: FeaturedProperty[];
+	// Override for the section heading. The default is the homepage hero
+	// "Don't worry we've got you covered"; rental detail pages pass a softer
+	// cross-sell line ("you may like these…").
+	heading?: { script: string; trailing: string };
 };
 
 
@@ -92,7 +96,7 @@ function mapFeatured(items: FeaturedProperty[]): PropertyCard[] {
 		stats: [
 			{ label: "BEDS", value: String(p.bedrooms) },
 			{ label: "BATHS", value: String(p.bathrooms) },
-			{ label: "SQFT", value: p.areaSqFt.toLocaleString() },
+			{ label: "SQFT", value: p.areaSqFt != null ? p.areaSqFt.toLocaleString() : "—" },
 		],
 		href: p.propertyType === "Rent" ? `/rentals/${p.id}` : `/buy/${p.id}`,
 	}));
@@ -103,6 +107,7 @@ export default function Properties({
 	background = "bg-brand-yellow",
 	cta,
 	featured,
+	heading = { script: "Don't Worry", trailing: "we've got you covered" },
 }: Props = {}) {
 	const items = featured && featured.length > 0 ? mapFeatured(featured) : PROPERTIES;
 
@@ -111,9 +116,9 @@ export default function Properties({
 			<div className="mx-auto w-full max-w-site px-4 md:px-8">
 				<Reveal as="h2" className="text-center font-sans text-xl font-medium uppercase tracking-wider text-brand-blue md:text-2xl">
 					<span className="mr-2 inline-block font-script text-[52px] font-normal normal-case leading-none tracking-normal">
-						Don&apos;t Worry
+						{heading.script}
 					</span>
-					we&apos;ve got you covered
+					{heading.trailing}
 				</Reveal>
 			</div>
 

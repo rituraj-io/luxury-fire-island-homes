@@ -1,15 +1,14 @@
 "use client";
 
 
-// Area — landing section for /area. Header block (script heading, search +
-// sort, pitch, CTA), followed by the Fire Island map with a neighborhood
+// Area — landing section for /area. Header block (script heading, pitch, CTA),
+// followed by the Fire Island map with a neighborhood
 // info card. The card overlays the map on min-[992px]+ and stacks below on
 // smaller screens. Interactive hotspot mapping + full neighborhood dataset
 // will be layered in once confirmed — the card currently renders a default
 // (Seaview) so the visual layout matches the design.
 
 import Link from "next/link";
-import { useState } from "react";
 import FireIslandMap from "@/components/ui/FireIslandMap";
 import Reveal from "@/components/motion/Reveal";
 import { DISTANCE, DURATION } from "@/lib/motion";
@@ -37,7 +36,6 @@ const SEAVIEW: Neighborhood = {
 
 
 export default function Area() {
-	const [query, setQuery] = useState("");
 	const active = SEAVIEW;
 
 	return (
@@ -48,45 +46,6 @@ export default function Area() {
 					<h1 className="font-script text-[40px] leading-none text-brand-blue md:text-[52px]">
 						Fire Island Areas
 					</h1>
-
-					{/* Filter row — search + sort by, stacks on mobile. */}
-					<div className="mt-8 flex w-full max-w-[620px] flex-col gap-3 sm:flex-row sm:items-stretch">
-						<label className="min-w-0 flex-1">
-							<span className="sr-only">Search neighborhoods</span>
-							<div className="flex h-12 items-center border-2 border-[#5c7f9f] bg-white px-4">
-								<svg
-									aria-hidden
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									className="h-7 w-7 shrink-0 text-[#5c7f9f]"
-								>
-									<circle cx="11" cy="11" r="7" />
-									<path d="m20 20-3.5-3.5" />
-								</svg>
-								<input
-									type="search"
-									value={query}
-									onChange={(e) => setQuery(e.target.value)}
-									className="ml-3 h-full flex-1 bg-transparent font-sans text-[14px] text-brand-blue outline-none placeholder:text-brand-blue/60"
-								/>
-							</div>
-						</label>
-
-						<button
-							type="button"
-							className="flex h-12 cursor-pointer items-center justify-center gap-2 border-2 border-[#5c7f9f] bg-white px-5 font-sans text-[14px] font-medium uppercase tracking-wider text-brand-blue transition hover:bg-brand-blue/5"
-						>
-							Sort By
-							<svg aria-hidden viewBox="0 0 12 8" className="h-2 w-3 shrink-0">
-								<path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-							</svg>
-						</button>
-					</div>
 
 					<p className="mt-6 max-w-[500px] font-body text-[16px] leading-relaxed text-black">
 						Scroll over a neighborhood to get our overview &amp; links to homes for sale and rental properties.

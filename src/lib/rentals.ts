@@ -21,6 +21,9 @@ export type RentalRoom = {
 export type RentalAgent = {
 	name: string;
 	title: string;
+	// Headshot URL. Backend may not populate this yet — the property page
+	// falls back to an initials avatar when missing.
+	photoUrl?: string;
 };
 
 

@@ -99,6 +99,7 @@ export default async function RentalPage({
 					background="bg-[#dbe2ec]"
 					cta={{ label: "SEE ALL CURRENT RENTALS", href: "/current-rentals" }}
 					featured={featured}
+					heading={{ script: "You may like", trailing: "these other homes in the area" }}
 				/>
 				<RentalReviews />
 				<section id="inquiry">

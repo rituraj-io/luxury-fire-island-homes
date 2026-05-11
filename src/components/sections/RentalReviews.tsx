@@ -2,6 +2,7 @@
 // right-to-left marquee of Google-style review cards. Marquee loop math is
 // handled by the shared Marquee component.
 
+import type { ReactNode } from "react";
 import Reveal from "@/components/motion/Reveal";
 import Marquee from "@/components/ui/Marquee";
 
@@ -100,7 +101,25 @@ function ReviewCard({ review }: { review: Review }) {
 }
 
 
-export default function RentalReviews() {
+type Props = {
+	// Custom heading override. Defaults to "Our Recent Reviews" used on the
+	// rental detail page; the /join careers page overrides this with its own
+	// brokerage-pitch line.
+	heading?: ReactNode;
+};
+
+
+const DEFAULT_HEADING = (
+	<>
+		Our Recent{" "}
+		<span className="ml-1 inline-block font-script text-[44px] font-normal normal-case leading-none tracking-normal md:text-[52px]">
+			Reviews
+		</span>
+	</>
+);
+
+
+export default function RentalReviews({ heading = DEFAULT_HEADING }: Props = {}) {
 	return (
 		<section
 			className="relative w-full overflow-hidden py-16 md:py-20"
@@ -114,10 +133,7 @@ export default function RentalReviews() {
 				as="h2"
 				className="relative text-center font-sans text-xl font-medium uppercase tracking-wider text-white md:text-2xl"
 			>
-				Our Recent{" "}
-				<span className="ml-1 inline-block font-script text-[44px] font-normal normal-case leading-none tracking-normal md:text-[52px]">
-					Reviews
-				</span>
+				{heading}
 			</Reveal>
 
 			<Marquee

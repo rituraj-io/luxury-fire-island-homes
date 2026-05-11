@@ -9,6 +9,7 @@ import JoinBrokerage from "@/components/sections/JoinBrokerage";
 import JoinAntiList from "@/components/sections/JoinAntiList";
 import JoinPillars from "@/components/sections/JoinPillars";
 import JoinFit from "@/components/sections/JoinFit";
+import RentalReviews from "@/components/sections/RentalReviews";
 import RentalInquiry from "@/components/sections/RentalInquiry";
 import CallBanner from "@/components/sections/CallBanner";
 import Footer from "@/components/sections/Footer";
@@ -32,6 +33,17 @@ export default function JoinPage() {
 				<JoinAntiList />
 				<JoinPillars />
 				<JoinFit />
+				<RentalReviews
+					heading={
+						<>
+							Join the highest rated{" "}
+							<span className="ml-1 inline-block font-script text-[44px] font-normal normal-case leading-none tracking-normal md:text-[52px]">
+								brokerage
+							</span>{" "}
+							on the island
+						</>
+					}
+				/>
 				<section id="lets-chat">
 					<RentalInquiry
 						heading="Let's Chat"

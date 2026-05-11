@@ -4,11 +4,13 @@
 // the site's polaroid-ish vocabulary. Mobile stacks in a single column with
 // the pricing card at the top so the primary CTA is immediately reachable.
 
+import Image from "next/image";
 import Reveal from "@/components/motion/Reveal";
 import RevealItem from "@/components/motion/RevealItem";
 import RevealStagger from "@/components/motion/RevealStagger";
+import RequestToBookButton from "@/components/ui/RequestToBookButton";
 import { DISTANCE, DURATION, STAGGER } from "@/lib/motion";
-import type { Rental } from "@/lib/rentals";
+import type { Rental, RentalAgent } from "@/lib/rentals";
 
 
 type Props = { rental: Rental };
@@ -44,20 +46,20 @@ function BookingCard({ rental }: Props) {
 				)}
 			</div>
 
+			<RequestToBookButton
+				propertySlug={rental.slug}
+				propertyName={rental.name}
+				className="mt-6 block w-full cursor-pointer bg-brand-orange px-5 py-3 text-center font-sans text-[14px] font-medium uppercase tracking-wider text-white transition hover:brightness-95"
+			/>
+
 			{tel && (
 				<a
 					href={tel}
-					className="mt-6 block bg-brand-orange px-5 py-3 text-center font-sans text-[14px] font-medium uppercase tracking-wider text-white transition hover:brightness-95"
+					className="mt-3 block text-center font-sans text-[13px] font-medium text-brand-blue underline-offset-4 transition hover:underline"
 				>
-					Call to Book {rental.pricing?.bookingPhone}
+					Or call {rental.pricing?.bookingPhone}
 				</a>
 			)}
-			<a
-				href="#inquiry"
-				className="mt-3 block border-2 border-brand-blue px-5 py-3 text-center font-sans text-[14px] font-medium uppercase tracking-wider text-brand-blue transition hover:bg-brand-blue/5"
-			>
-				Check Availability
-			</a>
 
 			{rental.referenceCode && (
 				<p className="mt-5 font-sans text-[12px] italic leading-snug text-brand-blue/70">
@@ -65,6 +67,48 @@ function BookingCard({ rental }: Props) {
 				</p>
 			)}
 		</aside>
+	);
+}
+
+
+function initials(name: string): string {
+	const parts = name.trim().split(/\s+/);
+	const first = parts[0]?.[0] ?? "";
+	const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+	return (first + last).toUpperCase();
+}
+
+
+function AgentCard({ agent }: { agent: RentalAgent }) {
+	return (
+		<div className="flex items-center gap-4 bg-[#dbe2ec] p-5">
+			{agent.photoUrl ? (
+				<div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-white">
+					<Image
+						src={agent.photoUrl}
+						alt={agent.name}
+						fill
+						sizes="56px"
+						className="object-cover"
+					/>
+				</div>
+			) : (
+				<span
+					aria-hidden
+					className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-blue font-sans text-[16px] font-medium text-white"
+				>
+					{initials(agent.name)}
+				</span>
+			)}
+			<div className="min-w-0">
+				<p className="font-sans text-[16px] font-medium text-brand-blue">
+					{agent.name}
+				</p>
+				<p className="mt-1 font-sans text-[13px] italic text-brand-blue/80">
+					{agent.title}
+				</p>
+			</div>
+		</div>
 	);
 }
 
@@ -208,17 +252,7 @@ export default function PropertyOverview({ rental }: Props) {
 							</Reveal>
 							<div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
 								{agents.map((a) => (
-									<div
-										key={a.name}
-										className="bg-[#dbe2ec] p-5"
-									>
-										<p className="font-sans text-[16px] font-medium text-brand-blue">
-											{a.name}
-										</p>
-										<p className="mt-1 font-sans text-[13px] italic text-brand-blue/80">
-											{a.title}
-										</p>
-									</div>
+									<AgentCard key={a.name} agent={a} />
 								))}
 							</div>
 						</div>

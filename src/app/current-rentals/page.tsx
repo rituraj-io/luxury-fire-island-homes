@@ -7,7 +7,7 @@
 // properties.
 
 import Nav from "@/components/sections/Nav";
-import CurrentRentals from "@/components/sections/CurrentRentals";
+import AdvancedRentalSearch from "@/components/sections/AdvancedRentalSearch";
 import NextLevelRenting from "@/components/sections/NextLevelRenting";
 import CallBanner from "@/components/sections/CallBanner";
 import Footer from "@/components/sections/Footer";
@@ -31,7 +31,7 @@ export default async function CurrentRentalsPage() {
 		<>
 			<Nav />
 			<main className="flex flex-col">
-				<CurrentRentals items={items} />
+				<AdvancedRentalSearch items={items} />
 				<NextLevelRenting />
 				<CallBanner />
 			</main>
