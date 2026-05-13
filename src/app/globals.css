@@ -21,6 +21,14 @@
 }
 
 
+/* Always reserve the vertical scrollbar gutter so modals that lock body
+   scroll don't cause fixed-position elements (the nav) to shift sideways
+   when the scrollbar disappears. */
+html {
+  scrollbar-gutter: stable;
+}
+
+
 body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   color: var(--color-brand-blue);

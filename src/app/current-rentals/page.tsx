@@ -11,27 +11,14 @@ import AdvancedRentalSearch from "@/components/sections/AdvancedRentalSearch";
 import NextLevelRenting from "@/components/sections/NextLevelRenting";
 import CallBanner from "@/components/sections/CallBanner";
 import Footer from "@/components/sections/Footer";
-import { getHomeCms, getRentCms, type FeaturedProperty } from "@/lib/cms";
 
 
-export default async function CurrentRentalsPage() {
-	const [home, rent] = await Promise.all([
-		getHomeCms().catch(() => null),
-		getRentCms().catch(() => null),
-	]);
-
-	const rentFeatured = rent?.section1.featured ?? [];
-	const homeFeatured = home?.sections.section2.featured ?? [];
-	const items: FeaturedProperty[] =
-		rentFeatured.length > 0
-			? rentFeatured
-			: homeFeatured.filter((p) => p.propertyType?.toLowerCase() === "rent");
-
+export default function CurrentRentalsPage() {
 	return (
 		<>
 			<Nav />
 			<main className="flex flex-col">
-				<AdvancedRentalSearch items={items} />
+				<AdvancedRentalSearch />
 				<NextLevelRenting />
 				<CallBanner />
 			</main>

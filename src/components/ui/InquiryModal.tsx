@@ -32,15 +32,61 @@ export default function InquiryModal({ open, onClose, propertySlug, propertyName
 	const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
 	const [error, setError] = useState<string | null>(null);
 
-	// Lock body scroll while the modal is open.
+	// Two-stage mount so the modal can animate in AND out. `render` keeps the
+	// node in the DOM long enough for the exit transition to play.
+	const [render, setRender] = useState(false);
+	const [shown, setShown] = useState(false);
+
 	useEffect(() => {
-		if (!open) return;
-		const prev = document.body.style.overflow;
-		document.body.style.overflow = "hidden";
-		return () => {
-			document.body.style.overflow = prev;
-		};
+		if (open) {
+			setRender(true);
+			// Double rAF so the browser actually paints the initial (opacity-0,
+			// scale-95) frame before we flip into the shown state — single rAF
+			// gets batched with the same render and the transition is skipped.
+			let inner = 0;
+			const outer = requestAnimationFrame(() => {
+				inner = requestAnimationFrame(() => setShown(true));
+			});
+			return () => {
+				cancelAnimationFrame(outer);
+				if (inner) cancelAnimationFrame(inner);
+			};
+		}
+		setShown(false);
+		const t = setTimeout(() => setRender(false), 300);
+		return () => clearTimeout(t);
 	}, [open]);
+
+	// Freeze the body in place with position:fixed (preserving the current
+	// scroll Y as a negative offset). This is the only approach that
+	// reliably prevents wheel events from chaining through to the page
+	// underneath. `scrollbar-gutter: stable` on html (globals.css) keeps the
+	// page width steady so fixed elements like the nav don't shift.
+	useEffect(() => {
+		if (!render) return;
+		const scrollY = window.scrollY;
+		const body = document.body;
+		const prev = {
+			position: body.style.position,
+			top: body.style.top,
+			left: body.style.left,
+			right: body.style.right,
+			width: body.style.width,
+		};
+		body.style.position = "fixed";
+		body.style.top = `-${scrollY}px`;
+		body.style.left = "0";
+		body.style.right = "0";
+		body.style.width = "100%";
+		return () => {
+			body.style.position = prev.position;
+			body.style.top = prev.top;
+			body.style.left = prev.left;
+			body.style.right = prev.right;
+			body.style.width = prev.width;
+			window.scrollTo(0, scrollY);
+		};
+	}, [render]);
 
 	// Close on Escape.
 	useEffect(() => {
@@ -60,7 +106,7 @@ export default function InquiryModal({ open, onClose, propertySlug, propertyName
 		}
 	}, [open]);
 
-	if (!open) return null;
+	if (!render) return null;
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -99,12 +145,16 @@ export default function InquiryModal({ open, onClose, propertySlug, propertyName
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="inquiry-title"
-			className="fixed inset-0 z-[100] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-6"
+			data-shown={shown}
+			className="fixed inset-0 z-[100] flex items-end justify-center bg-black/55 p-0 opacity-0 transition-opacity duration-300 ease-out data-[shown=true]:opacity-100 sm:items-center sm:p-6"
 			onClick={(e) => {
 				if (e.target === e.currentTarget) onClose();
 			}}
 		>
-			<div className="relative w-full max-w-[480px] bg-[#fffbf8] p-6 shadow-2xl sm:p-8">
+			<div
+				data-shown={shown}
+				className="relative w-full max-w-[480px] origin-center translate-y-12 bg-[#fffbf8] p-6 opacity-0 shadow-2xl transition-all duration-300 ease-out data-[shown=true]:translate-y-0 data-[shown=true]:opacity-100 sm:translate-y-0 sm:scale-95 sm:p-8 sm:data-[shown=true]:scale-100"
+			>
 				<button
 					type="button"
 					aria-label="Close"
