@@ -58,7 +58,14 @@ type ParallaxCtx = {
 
 
 export default function RentDifference({ data }: { data?: RentSection3 }) {
-	const d = data ?? FALLBACK;
+	// CMS section3 was migrated to a rows-based schema; this consumer still
+	// expects the legacy {text1, text2} shape. Only honor the payload when
+	// both legacy fields are present, otherwise fall through to FALLBACK so
+	// the page keeps rendering with the hardcoded marketing copy.
+	const d =
+		data && (data as RentSection3).text1?.title && (data as RentSection3).text2?.title
+			? data
+			: FALLBACK;
 	const sectionRef = useRef<HTMLElement>(null);
 	const reduced = useReducedMotion();
 	const finePointer = useFinePointer();

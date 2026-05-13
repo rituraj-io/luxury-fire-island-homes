@@ -118,27 +118,27 @@ export default function WhereWeComeIn({ data }: { data?: BuySection2 }) {
 
   const ctx: ParallaxCtx = { scrollProgress: scrollYProgress, enabled: parallaxEnabled };
 
-  const introPara = data ? paragraphs(data.introText) : FALLBACK.intro;
+  // The buy CMS schema for section2 was migrated to a richer
+  // {rows:[{kind:'images'|'richText'},...]} structure. This component still
+  // reads the legacy {text1,text2} shape. Until the consumer is rewritten,
+  // every nested access is guarded so a partial / null CMS payload can't
+  // crash the build — missing fields fall through to FALLBACK content.
+  const introPara = data?.introText ? paragraphs(data.introText) : FALLBACK.intro;
   const headline = data?.headline ?? FALLBACK.headline;
-  const specialty: Box = data
-    ? {
-        heading: data.leftSection.text1.title.toUpperCase(),
-        body: renderDescription(data.leftSection.text1.description),
-      }
+  const t11 = data?.leftSection?.text1;
+  const t12 = data?.leftSection?.text2;
+  const t21 = data?.rightSection?.text1;
+  const t22 = data?.rightSection?.text2;
+  const specialty: Box = t11?.title
+    ? { heading: t11.title.toUpperCase(), body: renderDescription(t11.description ?? "") }
     : { heading: FALLBACK.specialty.heading, body: renderDescription(FALLBACK.specialty.body) };
-  const believe: Box = data
-    ? {
-        heading: data.rightSection.text1.title.toUpperCase(),
-        body: renderDescription(data.rightSection.text1.description),
-      }
+  const believe: Box = t21?.title
+    ? { heading: t21.title.toUpperCase(), body: renderDescription(t21.description ?? "") }
     : { heading: FALLBACK.believe.heading, body: renderDescription(FALLBACK.believe.body) };
-  const lifers: Box = data
-    ? {
-        heading: data.leftSection.text2.title.toUpperCase(),
-        body: renderDescription(data.leftSection.text2.description),
-      }
+  const lifers: Box = t12?.title
+    ? { heading: t12.title.toUpperCase(), body: renderDescription(t12.description ?? "") }
     : { heading: FALLBACK.lifers.heading, body: renderDescription(FALLBACK.lifers.body) };
-  const closingHeading = data?.rightSection.text2.title || FALLBACK.closingHeading;
+  const closingHeading = t22?.title || FALLBACK.closingHeading;
 
   return (
     <section
