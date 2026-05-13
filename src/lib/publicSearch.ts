@@ -206,6 +206,7 @@ export type PublicPropertyDetail = {
 		bathrooms: number;
 		beds_config: PublicPropertyBedConfig[] | null;
 	} | null;
+	featuresList: string[] | null;
 	areaSqFt: number | null;
 	isExclusiveProperty: boolean | null;
 	singleFamilyOrApartment: string | null;
@@ -250,6 +251,41 @@ function totalSleeps(beds: PublicPropertyBedConfig[] | null | undefined, bedroom
 }
 
 
+// Beds_config arrives flat ([{bedroom:1, bedType:"King Bed", sleeps:1, quantity:1}, ...]).
+// Group by bedroom number into RentalRoom rows so the "Rooms & beds" section
+// renders one card per bedroom with a human-readable bed summary.
+function beddingToRooms(
+	beds: PublicPropertyBedConfig[] | null | undefined,
+): import("@/lib/rentals").RentalRoom[] {
+	if (!beds || beds.length === 0) return [];
+	const byBedroom = new Map<number, PublicPropertyBedConfig[]>();
+	for (const b of beds) {
+		const arr = byBedroom.get(b.bedroom) ?? [];
+		arr.push(b);
+		byBedroom.set(b.bedroom, arr);
+	}
+	const sortedBedrooms = Array.from(byBedroom.keys()).sort((a, b) => a - b);
+	return sortedBedrooms.map((n) => {
+		const items = byBedroom.get(n)!;
+		// Merge identical bed types within the same bedroom (rare, but the
+		// flat API model could repeat them as separate rows).
+		const merged = new Map<string, number>();
+		for (const b of items) {
+			merged.set(b.bedType, (merged.get(b.bedType) ?? 0) + (b.quantity ?? 1));
+		}
+		const bedSummary = Array.from(merged.entries())
+			.map(([type, qty]) => `${qty} ${type}${qty > 1 ? "s" : ""}`)
+			.join(" + ");
+		const sleeps = items.reduce((sum, b) => sum + (b.sleeps ?? 0) * (b.quantity ?? 1), 0);
+		return {
+			label: `Bedroom ${n}`,
+			bedSummary,
+			sleeps,
+		};
+	});
+}
+
+
 export function propertyDetailToRental(p: PublicPropertyDetail): import("@/lib/rentals").Rental {
 	const bedrooms = p.rooms?.bedrooms ?? 0;
 	const bathrooms = p.rooms?.bathrooms ?? 0;
@@ -291,6 +327,27 @@ export function propertyDetailToRental(p: PublicPropertyDetail): import("@/lib/r
 				}
 			: undefined;
 
+	const rooms = beddingToRooms(p.rooms?.beds_config);
+	const features = p.featuresList ?? [];
+
+	// Build a pricing block when we have at least one tier. We don't have a
+	// bookingPhone from this endpoint, so that field stays empty — the
+	// PropertyOverview booking card hides the phone link when absent.
+	const pricingTiers = (p.pricingAndAvailability ?? []).map((t) => {
+		const n = Number(t.price);
+		const value = Number.isFinite(n) ? `$${n.toLocaleString()} / ${t.period}` : t.label ?? "";
+		return { label: t.label ?? t.period, value };
+	});
+	const pricing =
+		pricingTiers.length > 0 || p.availabilityText
+			? {
+					availability: p.availabilityText ?? "",
+					tiers: pricingTiers,
+					fees: [],
+					bookingPhone: "",
+				}
+			: undefined;
+
 	return {
 		slug: p.id,
 		name: p.title,
@@ -304,9 +361,12 @@ export function propertyDetailToRental(p: PublicPropertyDetail): import("@/lib/r
 		heroAlt: p.title,
 		gallery: gallery.length > 0 ? gallery : undefined,
 		description,
+		features: features.length > 0 ? features : undefined,
+		rooms: rooms.length > 0 ? rooms : undefined,
 		agents: agents.length > 0 ? agents : undefined,
 		neighborhood,
 		rules,
+		pricing,
 	};
 }
 
