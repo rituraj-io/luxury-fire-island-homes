@@ -16,6 +16,7 @@ import CallBanner from "@/components/sections/CallBanner";
 import Footer from "@/components/sections/Footer";
 import { getAllRentalSlugs, getRentalBySlug, type Rental } from "@/lib/rentals";
 import { findFeaturedById, getHomeCms, type FeaturedProperty } from "@/lib/cms";
+import { getPropertyDetails, propertyDetailToRental } from "@/lib/publicSearch";
 
 
 type Params = { slug: string };
@@ -40,10 +41,21 @@ function rentalFromFeatured(p: FeaturedProperty): Rental {
 }
 
 
-// Resolves a slug to a Rental: local data first, then CMS featured arrays.
+// Resolves a slug to a Rental. Resolution order:
+//   1. Local hardcoded rentals (`src/lib/rentals.ts`) — friendly slugs like
+//      "obp24s-ocean-bay-park-rental" land here first; rich, full-fidelity
+//      content (rooms breakdown, neighborhood blurb, agents w/ titles).
+//   2. Public property-details API — UUID slugs from /current-rentals
+//      search results resolve here. Carries real listing data (gallery,
+//      agents with photos, neighborhood, pricing). New canonical source.
+//   3. CMS featured fallback — older listings only in the homepage's
+//      `featured` carousel. Thin shape (no gallery, no agents).
 async function resolveRental(slug: string): Promise<Rental | null> {
 	const local = getRentalBySlug(slug);
 	if (local) return local;
+
+	const detail = await getPropertyDetails(slug);
+	if (detail) return propertyDetailToRental(detail);
 
 	const featured = await findFeaturedById(slug);
 	return featured ? rentalFromFeatured(featured) : null;

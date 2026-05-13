@@ -15,6 +15,9 @@ import type { Cadence, Filters } from "@/lib/rentalFilters";
 const PUBLIC_SEARCH_URL =
 	"https://vwk0bwmeh8.execute-api.eu-north-1.amazonaws.com/adminpanel/public-search";
 
+const PUBLIC_PROPERTY_DETAILS_URL =
+	"https://vwk0bwmeh8.execute-api.eu-north-1.amazonaws.com/adminpanel/public-property-details";
+
 
 // Subset of the response we actually render. Optional fields stay optional —
 // the API returns many `null`s and we should fail soft rather than over-claim
@@ -151,6 +154,183 @@ export function locationLabel(p: PublicSearchProperty): string {
 	const parts = [p.address_city, p.address_state].filter(Boolean);
 	return parts.join(", ");
 }
+
+
+/* ──────────────────────── property details ──────────────────────── */
+
+
+// Subset of /public-property-details/:id we actually consume. The endpoint
+// returns rich data (full image list, agents with photos, neighborhood,
+// beds breakdown by room, pricing tiers). Optional fields stay optional —
+// the API returns many nulls and partial records.
+export type PublicPropertyAgent = {
+	id: string;
+	name: string;
+	profilePicture: string | null;
+};
+
+export type PublicPropertyImage = {
+	imageUrl: string;
+	caption: string | null;
+	displayOrder: number;
+};
+
+export type PublicPropertyBedConfig = {
+	bedroom: number;
+	bedType: string;
+	sleeps: number;
+	quantity: number;
+};
+
+export type PublicPropertyPricingTier = {
+	id: string;
+	label: string | null;
+	price: number;
+	period: string;
+	startDate: string | null;
+	endDate: string | null;
+};
+
+export type PublicPropertyDetail = {
+	id: string;
+	title: string;
+	type: "Rent" | "Sale" | string;
+	referenceCode: string | null;
+	description: string | null;
+	overview: string | null;
+	featuredImage: string | null;
+	images: PublicPropertyImage[] | null;
+	agents: PublicPropertyAgent[] | null;
+	rooms: {
+		bedrooms: number;
+		bathrooms: number;
+		beds_config: PublicPropertyBedConfig[] | null;
+	} | null;
+	areaSqFt: number | null;
+	isExclusiveProperty: boolean | null;
+	singleFamilyOrApartment: string | null;
+	privateOrShared: string | null;
+	pricingAndAvailability: PublicPropertyPricingTier[] | null;
+	availabilityText: string | null;
+	listingPrice: number | string | null;
+	neighbourhoodDetails: { id: string; title: string; description: string } | null;
+	houseRulesList: string[] | null;
+	safetyItemsList: string[] | null;
+	cancellationPolicy: string | null;
+	checkInStart: string | null;
+	checkInEnd: string | null;
+	checkOutTime: string | null;
+	minBookingDays: number | null;
+	maxBookingDays: number | null;
+};
+
+
+// Maps a public-property-details payload to the internal `Rental` shape
+// used by /rentals/[slug] page components. The Rental type is the
+// universal renderer schema; this bridge keeps the components agnostic of
+// the upstream API. Anything the API doesn't provide (pricing tiers,
+// detailed rooms layout, hardcoded marketing copy) stays undefined.
+function priceLabelFromTier(p: PublicPropertyDetail): string {
+	if (p.type === "Sale" && p.listingPrice != null) {
+		const n = Number(p.listingPrice);
+		if (Number.isFinite(n)) return `$${n.toLocaleString()}`;
+	}
+	const tier = p.pricingAndAvailability?.[0];
+	if (tier) {
+		const n = Number(tier.price);
+		if (Number.isFinite(n)) return `$${n.toLocaleString()} / ${tier.period}`;
+	}
+	return "Price on request";
+}
+
+
+function totalSleeps(beds: PublicPropertyBedConfig[] | null | undefined, bedrooms: number): number {
+	if (!beds || beds.length === 0) return bedrooms * 2;
+	return beds.reduce((sum, b) => sum + (b.sleeps ?? 0) * (b.quantity ?? 1), 0);
+}
+
+
+export function propertyDetailToRental(p: PublicPropertyDetail): import("@/lib/rentals").Rental {
+	const bedrooms = p.rooms?.bedrooms ?? 0;
+	const bathrooms = p.rooms?.bathrooms ?? 0;
+	const sleeps = totalSleeps(p.rooms?.beds_config ?? null, bedrooms);
+	const sortedImages = (p.images ?? [])
+		.slice()
+		.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+	const hero = p.featuredImage || sortedImages[0]?.imageUrl || "";
+	const gallery = sortedImages.map((img) => ({
+		src: img.imageUrl,
+		alt: img.caption || p.title,
+	}));
+	const location = [p.neighbourhoodDetails?.title, "Fire Island, NY"]
+		.filter(Boolean)
+		.join(" · ");
+	const descriptionText = p.description ?? p.overview ?? "";
+	const description = descriptionText
+		? descriptionText.split(/\n{2,}/).map((s) => s.trim()).filter(Boolean)
+		: undefined;
+	const neighborhood = p.neighbourhoodDetails
+		? {
+				heading: `Neighborhood Highlight: ${p.neighbourhoodDetails.title}`,
+				body: p.neighbourhoodDetails.description
+					.split(/\n{2,}/)
+					.map((s) => s.trim())
+					.filter(Boolean),
+			}
+		: undefined;
+	const agents = (p.agents ?? []).map((a) => ({
+		name: a.name,
+		photoUrl: a.profilePicture ?? undefined,
+	}));
+	const rules =
+		p.houseRulesList || p.safetyItemsList || p.cancellationPolicy
+			? {
+					house: p.houseRulesList ?? [],
+					safety: p.safetyItemsList ?? [],
+					cancellation: p.cancellationPolicy ?? "",
+				}
+			: undefined;
+
+	return {
+		slug: p.id,
+		name: p.title,
+		referenceCode: p.referenceCode ?? undefined,
+		location,
+		pricePerWeek: priceLabelFromTier(p),
+		beds: bedrooms,
+		baths: bathrooms,
+		sleeps,
+		heroImage: hero,
+		heroAlt: p.title,
+		gallery: gallery.length > 0 ? gallery : undefined,
+		description,
+		agents: agents.length > 0 ? agents : undefined,
+		neighborhood,
+		rules,
+	};
+}
+
+
+// Fetches a single property by id. Returns null on 404/error so callers
+// can fall through to other resolvers without try/catch noise.
+export async function getPropertyDetails(id: string): Promise<PublicPropertyDetail | null> {
+	try {
+		const res = await fetch(`${PUBLIC_PROPERTY_DETAILS_URL}/${encodeURIComponent(id)}`, {
+			next: { revalidate: 300 },
+		});
+		if (!res.ok) return null;
+		const body = (await res.json()) as PublicPropertyDetail | { data: PublicPropertyDetail };
+		// Some upstream endpoints wrap the payload in { data: ... } — handle both.
+		return (body && typeof body === "object" && "data" in body
+			? (body as { data: PublicPropertyDetail }).data
+			: (body as PublicPropertyDetail));
+	} catch {
+		return null;
+	}
+}
+
+
+/* ──────────────────────── sort ──────────────────────── */
 
 
 // Sort the current result page client-side. The public-search API itself

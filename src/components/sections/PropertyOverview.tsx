@@ -104,9 +104,11 @@ function AgentCard({ agent }: { agent: RentalAgent }) {
 				<p className="font-sans text-[16px] font-medium text-brand-blue">
 					{agent.name}
 				</p>
-				<p className="mt-1 font-sans text-[13px] italic text-brand-blue/80">
-					{agent.title}
-				</p>
+				{agent.title && (
+					<p className="mt-1 font-sans text-[13px] italic text-brand-blue/80">
+						{agent.title}
+					</p>
+				)}
 			</div>
 		</div>
 	);
