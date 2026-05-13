@@ -33,6 +33,14 @@ export default function PropertyGallery({ rental }: Props) {
 	const lead = rental.gallery?.[0] ?? { src: rental.heroImage, alt: rental.heroAlt };
 	const smalls = rental.gallery?.slice(1, 5) ?? [];
 
+	// Split the price label into amount + period so the stats column reads
+	// like the others ("$4,680" / "MONTHLY") instead of stuffing the period
+	// inline ("$4,680 / monthly / week"). Handles both legacy hardcoded
+	// labels ("$10,000/week") and the API's spaced form ("$4,680 / monthly").
+	const priceMatch = rental.pricePerWeek.match(/^(.+?)\s*\/\s*(.+)$/);
+	const priceAmount = priceMatch ? priceMatch[1].trim() : rental.pricePerWeek;
+	const pricePeriod = priceMatch ? priceMatch[2].trim() : "week";
+
 	return (
 		<section className="w-full bg-[#f8f4ec] pt-[calc(144px+env(safe-area-inset-top)+1.5rem)] pb-10 md:pt-[calc(144px+env(safe-area-inset-top)+2.5rem)] md:pb-14">
 			<div className="mx-auto w-full max-w-[1280px] px-4 md:px-8">
@@ -70,10 +78,10 @@ export default function PropertyGallery({ rental }: Props) {
 						<span className={STAT_LABEL}>Sleeps</span>
 					</RevealItem>
 					<RevealItem className="flex flex-col items-center border-l border-brand-blue/20 text-center">
-						<span className="font-sans text-[18px] font-medium leading-none text-brand-blue md:text-[22px]">
-							{rental.pricePerWeek.replace(/\/week$/i, "")}
+						<span className="font-display text-[26px] leading-none tracking-[0.02em] text-brand-blue md:text-[34px]">
+							{priceAmount}
 						</span>
-						<span className={STAT_LABEL}>/ week</span>
+						<span className={STAT_LABEL}>{pricePeriod}</span>
 					</RevealItem>
 				</RevealStagger>
 
