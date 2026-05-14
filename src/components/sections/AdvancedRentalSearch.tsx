@@ -21,6 +21,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Reveal from "@/components/motion/Reveal";
 import RevealStagger from "@/components/motion/RevealStagger";
@@ -68,8 +69,24 @@ const POPULAR_FEATURES = [
 ];
 
 
+// Maps the public `?for=` query param to the internal listingType filter.
+// We normalize a few common spellings so links from older routes still work.
+function listingTypeFromQuery(value: string | null): "" | "Rent" | "Sale" {
+	if (!value) return "";
+	const v = value.toLowerCase();
+	if (v === "rent" || v === "rentals") return "Rent";
+	if (v === "sale" || v === "buy" || v === "sell" || v === "for-sale") return "Sale";
+	return "";
+}
+
+
 export default function AdvancedRentalSearch() {
-	const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+	const searchParams = useSearchParams();
+	const initialListingType = listingTypeFromQuery(searchParams.get("for"));
+	const [filters, setFilters] = useState<Filters>(() => ({
+		...EMPTY_FILTERS,
+		listingType: initialListingType,
+	}));
 	const [sort, setSort] = useState<SortKey>("default");
 	const [panelOpen, setPanelOpen] = useState(false);
 
@@ -108,6 +125,23 @@ export default function AdvancedRentalSearch() {
 
 	const sortedData = useMemo(() => applySortPublic(data, sort), [data, sort]);
 	const canLoadMore = data.length < total;
+
+	// When async results land, the page grows. Lenis cached the document's
+	// height at first paint (with an empty grid) and will cap the scroll there
+	// — so wheel scrolling tops out around 70% of the now-taller page. Force
+	// it to re-measure after the grid renders + images start sizing. Two-stage
+	// rAF + small timeout settles after the first layout pass.
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		const lenis = (window as unknown as { __lenis?: { resize: () => void } }).__lenis;
+		if (!lenis) return;
+		const id1 = window.setTimeout(() => lenis.resize(), 50);
+		const id2 = window.setTimeout(() => lenis.resize(), 400);
+		return () => {
+			window.clearTimeout(id1);
+			window.clearTimeout(id2);
+		};
+	}, [sortedData.length, loading]);
 
 	const loadMore = async () => {
 		const nextPage = page + 1;
@@ -190,7 +224,11 @@ export default function AdvancedRentalSearch() {
 					</div>
 				)}
 
-				{!loading && sortedData.length === 0 && !error ? (
+				{loading && sortedData.length === 0 && !error ? (
+					<div className="mt-10 flex min-h-[320px] items-center justify-center">
+						<Spinner />
+					</div>
+				) : !loading && sortedData.length === 0 && !error ? (
 					<Reveal y={DISTANCE.text} duration={DURATION.text} className="mx-auto mt-10 max-w-[480px] bg-white p-8 text-center shadow-sm">
 						<p className="font-script text-[28px] leading-none text-brand-blue">No matches</p>
 						<p className="mt-3 font-sans text-[14px] text-brand-blue/80">
@@ -217,7 +255,7 @@ export default function AdvancedRentalSearch() {
 						{sortedData.map((p) => (
 							<Link
 								key={p.id}
-								href={`/rentals/${p.id}`}
+								href={`/property/${p.id}`}
 								className="group block bg-white shadow-sm transition-shadow duration-300 ease-out hover:shadow-xl"
 							>
 								<div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-200">
@@ -1289,6 +1327,17 @@ function SortDropdown({ value, onChange }: { value: SortKey; onChange: (v: SortK
 				</div>
 			)}
 		</div>
+	);
+}
+
+
+function Spinner() {
+	return (
+		<div
+			role="status"
+			aria-label="Loading homes"
+			className="h-12 w-12 animate-spin rounded-full border-[3px] border-brand-blue/20 border-t-brand-blue"
+		/>
 	);
 }
 

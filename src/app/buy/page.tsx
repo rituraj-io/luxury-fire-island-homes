@@ -45,7 +45,7 @@ export default async function BuyPage() {
 				<Properties
 					background="bg-[#dbe2ec]"
 					featured={items}
-					cta={{ label: "SEE ALL HOMES FOR SALE", href: "/homes-for-sale" }}
+					cta={{ label: "SEE ALL HOMES FOR SALE", href: "/property-listing?for=sale" }}
 				/>
 				<WhereWeComeIn data={buy?.section2} />
 				<WhatYouGet data={buy?.section3} />

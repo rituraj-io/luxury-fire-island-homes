@@ -30,8 +30,8 @@ const SEAVIEW: Neighborhood = {
 	tagline: "Peaceful, Family Oriented, Manicured",
 	description:
 		"Seaview offers stunning beaches, tennis courts, and a private marina. Homes start at $1.6 million, with summer rentals ranging from $5,000 to $13,000 per week. It retains a residential atmosphere while being near the lively restaurants, nightlife, and shops of Ocean Beach.",
-	homesForSaleHref: "/buy?area=seaview",
-	homesToRentHref: "/current-rentals?area=seaview",
+	homesForSaleHref: "/property-listing?for=sale&area=seaview",
+	homesToRentHref: "/property-listing?for=rent&area=seaview",
 };
 
 

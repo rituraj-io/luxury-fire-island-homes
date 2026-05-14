@@ -18,7 +18,7 @@ import type { HeroSection } from "@/lib/cms";
 const HELP_LINKS = [
 	{ label: "I'm Buying", href: "/buy" },
 	{ label: "I'm Selling", href: "/sell" },
-	{ label: "I'm Renting", href: "/current-rentals" },
+	{ label: "I'm Renting", href: "/property-listing?for=rent" },
 ];
 
 

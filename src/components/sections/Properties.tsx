@@ -98,7 +98,7 @@ function mapFeatured(items: FeaturedProperty[]): PropertyCard[] {
 			{ label: "BATHS", value: String(p.bathrooms) },
 			{ label: "SQFT", value: p.areaSqFt != null ? p.areaSqFt.toLocaleString() : "—" },
 		],
-		href: p.propertyType === "Rent" ? `/rentals/${p.id}` : `/buy/${p.id}`,
+		href: `/property/${p.id}`,
 	}));
 }
 

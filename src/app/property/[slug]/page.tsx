@@ -78,7 +78,7 @@ export async function generateMetadata({
 	return {
 		title: rental.name,
 		description: `${rental.name} — ${rental.location}. ${rental.beds} beds · ${rental.baths} baths · sleeps ${rental.sleeps}.`,
-		alternates: { canonical: `/rentals/${rental.slug}` },
+		alternates: { canonical: `/property/${rental.slug}` },
 	};
 }
 
@@ -109,7 +109,7 @@ export default async function RentalPage({
 				<PropertyDetails rental={rental} />
 				<Properties
 					background="bg-[#dbe2ec]"
-					cta={{ label: "SEE ALL CURRENT RENTALS", href: "/current-rentals" }}
+					cta={{ label: "SEE ALL CURRENT RENTALS", href: "/property-listing?for=rent" }}
 					featured={featured}
 					heading={{ script: "You may like", trailing: "these other homes in the area" }}
 				/>
