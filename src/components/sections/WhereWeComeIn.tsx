@@ -34,7 +34,12 @@ import Reveal from "@/components/motion/Reveal";
 import RevealItem from "@/components/motion/RevealItem";
 import RevealStagger from "@/components/motion/RevealStagger";
 import { DISTANCE, DURATION, useFinePointer } from "@/lib/motion";
-import { paragraphs, type BuySection2 } from "@/lib/cms";
+import {
+  paragraphs,
+  type BuySection2,
+  type BuySection2ImagesRow,
+  type BuySection2RichTextRow,
+} from "@/lib/cms";
 
 
 const CTAS = [
@@ -87,6 +92,76 @@ function renderDescription(text: string) {
 }
 
 
+// Pull every richText row from a section column (skipping images rows).
+function collectRichText(
+  rows: BuySection2["leftSection"]["rows"] | undefined,
+): BuySection2RichTextRow[] {
+  if (!rows) return [];
+  return rows.filter((r): r is BuySection2RichTextRow => r.kind === "richText");
+}
+
+
+// A richText row's first paragraph is the heading; the rest are body copy.
+function splitRich(row: BuySection2RichTextRow): { heading: string; body: string[] } | null {
+  const paras = paragraphs(row.content);
+  if (paras.length === 0) return null;
+  const [heading, ...body] = paras;
+  return { heading, body };
+}
+
+
+function boxFromRich(row: BuySection2RichTextRow | undefined): Box | null {
+  if (!row) return null;
+  const parts = splitRich(row);
+  if (!parts) return null;
+  return {
+    heading: parts.heading.toUpperCase(),
+    body: renderDescription(parts.body.join("\n\n")),
+  };
+}
+
+
+function headingFromRich(row: BuySection2RichTextRow | undefined): string | null {
+  if (!row) return null;
+  return splitRich(row)?.heading ?? null;
+}
+
+
+// CMS image URLs end with `<uuid>-<filename>.webp`. Each cluster references
+// photos by their semantic filename slug (e.g. "dog-1", "blue-pool") so we
+// can lookup by slug regardless of upload order. Returns a map of slug → URL.
+type ImageMap = Record<string, string>;
+
+function buildImageMap(data: BuySection2 | undefined): ImageMap {
+  if (!data) return {};
+  const out: ImageMap = {};
+  const rows: BuySection2["leftSection"]["rows"] = [
+    ...(data.leftSection?.rows ?? []),
+    ...(data.rightSection?.rows ?? []),
+  ];
+  for (const row of rows) {
+    if (row.kind !== "images") continue;
+    for (const url of (row as BuySection2ImagesRow).urls) {
+      const slug = slugFromUrl(url);
+      if (slug && !out[slug]) out[slug] = url;
+    }
+  }
+  return out;
+}
+
+function slugFromUrl(url: string): string | null {
+  const file = url.split("/").pop();
+  if (!file) return null;
+  // Strip leading UUID + `-`, then strip extension.
+  const stripped = file.replace(/^[0-9a-f-]{36}-/, "");
+  return stripped.replace(/\.[a-z]+$/i, "");
+}
+
+function pickSrc(map: ImageMap, slug: string, fallback: string): string {
+  return map[slug] ?? fallback;
+}
+
+
 // Parallax magnitudes (px). Each photo's vertical travel across the section's
 // viewport pass is `2 * amount` — `+amount` when the section enters, `-amount`
 // when it exits. Larger magnitude = faster apparent motion = reads as higher
@@ -118,27 +193,29 @@ export default function WhereWeComeIn({ data }: { data?: BuySection2 }) {
 
   const ctx: ParallaxCtx = { scrollProgress: scrollYProgress, enabled: parallaxEnabled };
 
-  // The buy CMS schema for section2 was migrated to a richer
-  // {rows:[{kind:'images'|'richText'},...]} structure. This component still
-  // reads the legacy {text1,text2} shape. Until the consumer is rewritten,
-  // every nested access is guarded so a partial / null CMS payload can't
-  // crash the build — missing fields fall through to FALLBACK content.
+  // Section2 columns ship as `rows: [imagesRow, richTextRow, …]`. Each
+  // richText row is a ProseMirror doc whose first paragraph is the heading
+  // and remaining paragraphs are body copy. Pair them with their adjacent
+  // image clusters: left[richText#0] = specialty, left[richText#1] = lifers,
+  // right[richText#0] = believe, right[richText#1] = closing heading.
   const introPara = data?.introText ? paragraphs(data.introText) : FALLBACK.intro;
   const headline = data?.headline ?? FALLBACK.headline;
-  const t11 = data?.leftSection?.text1;
-  const t12 = data?.leftSection?.text2;
-  const t21 = data?.rightSection?.text1;
-  const t22 = data?.rightSection?.text2;
-  const specialty: Box = t11?.title
-    ? { heading: t11.title.toUpperCase(), body: renderDescription(t11.description ?? "") }
-    : { heading: FALLBACK.specialty.heading, body: renderDescription(FALLBACK.specialty.body) };
-  const believe: Box = t21?.title
-    ? { heading: t21.title.toUpperCase(), body: renderDescription(t21.description ?? "") }
-    : { heading: FALLBACK.believe.heading, body: renderDescription(FALLBACK.believe.body) };
-  const lifers: Box = t12?.title
-    ? { heading: t12.title.toUpperCase(), body: renderDescription(t12.description ?? "") }
-    : { heading: FALLBACK.lifers.heading, body: renderDescription(FALLBACK.lifers.body) };
-  const closingHeading = t22?.title || FALLBACK.closingHeading;
+  const leftRich = collectRichText(data?.leftSection?.rows);
+  const rightRich = collectRichText(data?.rightSection?.rows);
+  const specialty: Box = boxFromRich(leftRich[0]) ?? {
+    heading: FALLBACK.specialty.heading,
+    body: renderDescription(FALLBACK.specialty.body),
+  };
+  const lifers: Box = boxFromRich(leftRich[1]) ?? {
+    heading: FALLBACK.lifers.heading,
+    body: renderDescription(FALLBACK.lifers.body),
+  };
+  const believe: Box = boxFromRich(rightRich[0]) ?? {
+    heading: FALLBACK.believe.heading,
+    body: renderDescription(FALLBACK.believe.body),
+  };
+  const closingHeading = headingFromRich(rightRich[1]) ?? FALLBACK.closingHeading;
+  const images = buildImageMap(data);
 
   return (
     <section
@@ -171,13 +248,13 @@ export default function WhereWeComeIn({ data }: { data?: BuySection2 }) {
           {/* Left column */}
           <div className="flex flex-col gap-y-12">
             <Reveal y={DISTANCE.card} duration={DURATION.card}>
-              <Cluster1 ctx={ctx} />
+              <Cluster1 ctx={ctx} images={images} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card}>
               <BlueBox {...specialty} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card}>
-              <Cluster3 ctx={ctx} />
+              <Cluster3 ctx={ctx} images={images} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card}>
               <BlueBox {...lifers} />
@@ -187,13 +264,13 @@ export default function WhereWeComeIn({ data }: { data?: BuySection2 }) {
           {/* Right column — offset down so the two columns stagger visually. */}
           <div className="mt-20 flex flex-col gap-y-12">
             <Reveal y={DISTANCE.card} duration={DURATION.card}>
-              <Cluster2 ctx={ctx} />
+              <Cluster2 ctx={ctx} images={images} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card} className="mt-6">
               <BlueBox {...believe} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card}>
-              <Cluster4 ctx={ctx} />
+              <Cluster4 ctx={ctx} images={images} />
             </Reveal>
             <Reveal y={DISTANCE.card} duration={DURATION.card} className="-mt-6">
               <ClosingCta heading={closingHeading} />
@@ -211,7 +288,7 @@ export default function WhereWeComeIn({ data }: { data?: BuySection2 }) {
 
         <div className="flex flex-col gap-y-10">
           <Reveal y={DISTANCE.card} duration={DURATION.card}>
-            <Cluster1 ctx={ctx} />
+            <Cluster1 ctx={ctx} images={images} />
           </Reveal>
           <Reveal y={DISTANCE.card} duration={DURATION.card}>
             <BlueBox {...specialty} />
@@ -220,7 +297,7 @@ export default function WhereWeComeIn({ data }: { data?: BuySection2 }) {
               extends ~83px above the cluster box) so it doesn't collide with
               the BlueBox above. */}
           <Reveal y={DISTANCE.card} duration={DURATION.card} className="mt-20">
-            <Cluster2 ctx={ctx} />
+            <Cluster2 ctx={ctx} images={images} />
           </Reveal>
           <Reveal y={DISTANCE.card} duration={DURATION.card}>
             <BlueBox {...believe} />
@@ -229,13 +306,13 @@ export default function WhereWeComeIn({ data }: { data?: BuySection2 }) {
               above, tightens spacing to the "WHY OUR BUYERS BECOME LIFERS"
               card. Net vertical footprint unchanged. */}
           <Reveal y={DISTANCE.card} duration={DURATION.card} className="mt-4">
-            <Cluster3 ctx={ctx} />
+            <Cluster3 ctx={ctx} images={images} />
           </Reveal>
           <Reveal y={DISTANCE.card} duration={DURATION.card} className="-mt-4">
             <BlueBox {...lifers} />
           </Reveal>
           <Reveal y={DISTANCE.card} duration={DURATION.card}>
-            <Cluster4 ctx={ctx} />
+            <Cluster4 ctx={ctx} images={images} />
           </Reveal>
           <Reveal y={DISTANCE.card} duration={DURATION.card}>
             <ClosingCta heading={closingHeading} />
@@ -390,7 +467,7 @@ function Photo({
 // ------------------------------------------------------------------
 
 
-function Cluster1({ ctx }: { ctx: ParallaxCtx }) {
+function Cluster1({ ctx, images }: { ctx: ParallaxCtx; images: ImageMap }) {
   // DOM order = z-order: dog-1 first so photo-3 paints over it.
   return (
     <div className="relative mx-auto aspect-[9/4] w-full max-w-[460px]">
@@ -400,7 +477,7 @@ function Cluster1({ ctx }: { ctx: ParallaxCtx }) {
         rotate={-5}
         position="right-[0%] top-[2%] w-[52%]"
         aspect="aspect-[872/673]"
-        src="/assets/images/dog-1.webp"
+        src={pickSrc(images, "dog-1", "/assets/images/dog-1.webp")}
         alt="Dog on the beach"
       />
       <Photo
@@ -409,7 +486,7 @@ function Cluster1({ ctx }: { ctx: ParallaxCtx }) {
         rotate={5}
         position="left-[14%] top-[-14%] w-[42.5%]"
         aspect="aspect-[4/3]"
-        src="/assets/images/photo-3.webp"
+        src={pickSrc(images, "photo-3", "/assets/images/photo-3.webp")}
         alt="Fire Island home"
       />
     </div>
@@ -417,7 +494,7 @@ function Cluster1({ ctx }: { ctx: ParallaxCtx }) {
 }
 
 
-function Cluster2({ ctx }: { ctx: ParallaxCtx }) {
+function Cluster2({ ctx, images }: { ctx: ParallaxCtx; images: ImageMap }) {
   return (
     <div className="relative mx-auto aspect-[10/9] w-full max-w-[420px]">
       {/* Top-right: blue-door house */}
@@ -427,7 +504,7 @@ function Cluster2({ ctx }: { ctx: ParallaxCtx }) {
         rotate={0}
         position="right-[2%] top-[-22%] w-[60%]"
         aspect="aspect-[886/750]"
-        src="/assets/images/blue-door-house.webp"
+        src={pickSrc(images, "blue-door-house", "/assets/images/blue-door-house.webp")}
         alt="Blue-door beach house"
       />
       {/* Middle-left: grandpa with family */}
@@ -437,7 +514,7 @@ function Cluster2({ ctx }: { ctx: ParallaxCtx }) {
         rotate={-3}
         position="left-[-4%] top-[0%] w-[55%]"
         aspect="aspect-[886/750]"
-        src="/assets/images/grandpa-fam.webp"
+        src={pickSrc(images, "grandpa-fam", "/assets/images/grandpa-fam.webp")}
         alt="Grandpa with the family"
       />
       {/* Bottom-right: mom and daughter */}
@@ -447,7 +524,7 @@ function Cluster2({ ctx }: { ctx: ParallaxCtx }) {
         rotate={4}
         position="right-[10%] top-[25%] w-[50%]"
         aspect="aspect-[579/778]"
-        src="/assets/images/mom-and-daughter.webp"
+        src={pickSrc(images, "mom-and-daughter", "/assets/images/mom-and-daughter.webp")}
         alt="Mom and daughter on the beach"
       />
     </div>
@@ -455,7 +532,7 @@ function Cluster2({ ctx }: { ctx: ParallaxCtx }) {
 }
 
 
-function Cluster3({ ctx }: { ctx: ParallaxCtx }) {
+function Cluster3({ ctx, images }: { ctx: ParallaxCtx; images: ImageMap }) {
   return (
     <div className="relative mx-auto aspect-[3/2] w-full max-w-[460px]">
       <Photo
@@ -464,7 +541,7 @@ function Cluster3({ ctx }: { ctx: ParallaxCtx }) {
         rotate={-5}
         position="left-[2%] top-[8%] w-[54%]"
         aspect="aspect-[885/752]"
-        src="/assets/images/bbq-umbrella.webp"
+        src={pickSrc(images, "bbq-umbrella", "/assets/images/bbq-umbrella.webp")}
         alt="BBQ under a beach umbrella"
       />
       <Photo
@@ -473,7 +550,7 @@ function Cluster3({ ctx }: { ctx: ParallaxCtx }) {
         rotate={7}
         position="right-[2%] top-[0%] w-[46%]"
         aspect="aspect-[580/779]"
-        src="/assets/images/cornfield-farmhouse.webp"
+        src={pickSrc(images, "cornfield-farmhouse", "/assets/images/cornfield-farmhouse.webp")}
         alt="Farmhouse at the edge of a cornfield"
       />
     </div>
@@ -481,7 +558,7 @@ function Cluster3({ ctx }: { ctx: ParallaxCtx }) {
 }
 
 
-function Cluster4({ ctx }: { ctx: ParallaxCtx }) {
+function Cluster4({ ctx, images }: { ctx: ParallaxCtx; images: ImageMap }) {
   return (
     <div className="relative mx-auto aspect-[3/2] w-full max-w-[360px]">
       <Photo
@@ -490,7 +567,7 @@ function Cluster4({ ctx }: { ctx: ParallaxCtx }) {
         rotate={4}
         position="right-[2%] top-[4%] w-[72%]"
         aspect="aspect-[948/802]"
-        src="/assets/images/blue-pool.webp"
+        src={pickSrc(images, "blue-pool", "/assets/images/blue-pool.webp")}
         alt="Blue pool at a Fire Island home"
       />
     </div>

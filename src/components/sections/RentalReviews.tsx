@@ -5,6 +5,7 @@
 import type { ReactNode } from "react";
 import Reveal from "@/components/motion/Reveal";
 import Marquee from "@/components/ui/Marquee";
+import { DISTANCE, DURATION } from "@/lib/motion";
 
 
 type Review = {
@@ -136,13 +137,14 @@ export default function RentalReviews({ heading = DEFAULT_HEADING }: Props = {})
 				{heading}
 			</Reveal>
 
-			<Marquee
-				items={REVIEWS}
-				durationSeconds={80}
-				itemClassName="mr-5"
-				className="mt-10"
-				renderItem={(r) => <ReviewCard review={r} />}
-			/>
+			<Reveal y={DISTANCE.card} duration={DURATION.card} delay={0.1} className="mt-10">
+				<Marquee
+					items={REVIEWS}
+					durationSeconds={80}
+					itemClassName="mr-5"
+					renderItem={(r) => <ReviewCard review={r} />}
+				/>
+			</Reveal>
 		</section>
 	);
 }

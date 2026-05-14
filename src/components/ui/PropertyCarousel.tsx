@@ -39,6 +39,11 @@ export default function PropertyCarousel({ items }: { items: PropertyCard[] }) {
 	const indexRef = useRef(0);
 	const visibleRef = useRef(3);
 
+	// When fewer items than visible slots, the looping strip would expose its
+	// duplicated copies (e.g. 1 API item × 2 = 2 cards visible). Fall back to
+	// a static centered row in that case — no duplication, no arrows.
+	const isStatic = total <= visible;
+
 	useLayoutEffect(() => {
 		const update = () => {
 			if (!viewportRef.current) return;
@@ -89,37 +94,46 @@ export default function PropertyCarousel({ items }: { items: PropertyCard[] }) {
 	const next = () => step(1);
 
 	const stride = cardW + GAP;
+	const renderItems = isStatic ? items : strip;
 
 	return (
 		<div className="relative mx-auto w-full max-w-site px-12 md:px-16">
-			<button
-				type="button"
-				aria-label="Previous"
-				onClick={prev}
-				className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center md:left-4"
-			>
-				<Image src="/assets/images/angle-small-left.svg" alt="" width={32} height={32} className="h-8 w-8" />
-			</button>
+			{!isStatic && (
+				<>
+					<button
+						type="button"
+						aria-label="Previous"
+						onClick={prev}
+						className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center md:left-4"
+					>
+						<Image src="/assets/images/angle-small-left.svg" alt="" width={32} height={32} className="h-8 w-8" />
+					</button>
 
-			<button
-				type="button"
-				aria-label="Next"
-				onClick={next}
-				className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center md:right-4"
-			>
-				<Image src="/assets/images/angle-small-right.svg" alt="" width={32} height={32} className="h-8 w-8" />
-			</button>
+					<button
+						type="button"
+						aria-label="Next"
+						onClick={next}
+						className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center md:right-4"
+					>
+						<Image src="/assets/images/angle-small-right.svg" alt="" width={32} height={32} className="h-8 w-8" />
+					</button>
+				</>
+			)}
 
 			<div ref={viewportRef} className="overflow-hidden">
 				<ul
-					onTransitionEnd={onTransitionEnd}
-					style={{
-						transform: `translate3d(${-index * stride}px, 0, 0)`,
-						transition: animate ? "transform 500ms ease" : "none",
-					}}
-					className="flex"
+					onTransitionEnd={isStatic ? undefined : onTransitionEnd}
+					style={
+						isStatic
+							? undefined
+							: {
+									transform: `translate3d(${-index * stride}px, 0, 0)`,
+									transition: animate ? "transform 500ms ease" : "none",
+								}
+					}
+					className={isStatic ? "flex justify-center" : "flex"}
 				>
-					{strip.map((p, i) => {
+					{renderItems.map((p, i) => {
 						const CardBody = (
 							<>
 								<div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-200">
@@ -161,7 +175,7 @@ export default function PropertyCarousel({ items }: { items: PropertyCard[] }) {
 								key={`${p.title}-${i}`}
 								style={{
 									width: cardW ? `${cardW}px` : `${100 / visible}%`,
-									marginRight: i === strip.length - 1 ? 0 : GAP,
+									marginRight: i === renderItems.length - 1 ? 0 : GAP,
 								}}
 								className="group shrink-0 bg-white shadow-sm transition-shadow duration-300 ease-out hover:shadow-xl"
 							>

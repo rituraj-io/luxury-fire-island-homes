@@ -93,18 +93,22 @@ export async function getHomeCms(): Promise<HomeCms> {
 
 // Buy / Rent landing-page CMS. Both expose a `section1.featured` array of
 // FeaturedProperty using the same shape as home.section2.featured.
-export type BuySection2BlueBox = {
-	text1: { title: string; description: string };
-	text2: { title: string; description: string };
-	image1Url: string;
-	image2Url: string;
+// Section2 left/right columns ship as `rows: [imagesRow, richTextRow, …]`
+// where each `richText` row is a stringified ProseMirror doc: first paragraph
+// is the heading, remaining paragraphs are body copy.
+export type BuySection2ImagesRow = { kind: "images"; urls: string[] };
+export type BuySection2RichTextRow = { kind: "richText"; content: string };
+export type BuySection2Row = BuySection2ImagesRow | BuySection2RichTextRow;
+
+export type BuySection2Column = {
+	rows: BuySection2Row[];
 };
 
 export type BuySection2 = {
 	headline: string;
 	introText: string;
-	leftSection: BuySection2BlueBox;
-	rightSection: BuySection2BlueBox;
+	leftSection: BuySection2Column;
+	rightSection: BuySection2Column;
 };
 
 export type BuySection3Card = {
@@ -157,11 +161,15 @@ export type RentSection2 = {
 	introText: string;
 };
 
+// Section3 ships as `rows: [richText, images, richText, images]` where each
+// richText row is a stringified ProseMirror doc (first paragraph = heading,
+// rest = body). Mirrors the buy/section2 schema.
+export type RentSection3Row =
+	| { kind: "richText"; content: string }
+	| { kind: "images"; urls: string[] };
+
 export type RentSection3 = {
-	text1: { title: string; description: string };
-	text2: { title: string; description: string };
-	image1Url: string;
-	image2Url: string;
+	rows: RentSection3Row[];
 };
 
 export type RentSection4 = {
@@ -173,7 +181,6 @@ export type RentSection4 = {
 export type RentSection5 = {
 	headline: string;
 	description: string;
-	bottomline: string;
 };
 
 export type RentCms = {
@@ -229,9 +236,47 @@ export async function findFeaturedById(id: string): Promise<FeaturedProperty | n
 
 
 // Splits a CMS plain-text blob (\n\n-separated) into paragraph strings.
+// Some CMS fields ship as a stringified ProseMirror/TipTap doc (despite the
+// page-level `textFormat: "markdown"` flag); detect that shape and flatten it
+// to one string per top-level paragraph before splitting.
 export function paragraphs(text: string): string[] {
+	const flat = proseMirrorToParagraphs(text);
+	if (flat) return flat;
 	return text
 		.split(/\n\s*\n/)
 		.map((s) => s.trim())
 		.filter(Boolean);
+}
+
+
+type PmNode = { type?: string; text?: string; content?: PmNode[] };
+
+
+// Returns one string per top-level `paragraph` node when `raw` is a serialized
+// ProseMirror doc, else null. Inline line breaks inside a paragraph are
+// preserved as single \n so downstream renderers can map them to <br/>.
+function proseMirrorToParagraphs(raw: string): string[] | null {
+	const trimmed = raw.trim();
+	if (!trimmed.startsWith("{")) return null;
+	let doc: PmNode;
+	try {
+		doc = JSON.parse(trimmed) as PmNode;
+	} catch {
+		return null;
+	}
+	if (doc?.type !== "doc" || !Array.isArray(doc.content)) return null;
+	const out: string[] = [];
+	for (const block of doc.content) {
+		if (block?.type !== "paragraph") continue;
+		const text = collectText(block).trim();
+		if (text) out.push(text);
+	}
+	return out.length > 0 ? out : null;
+}
+
+
+function collectText(node: PmNode): string {
+	if (node.type === "text") return node.text ?? "";
+	if (!Array.isArray(node.content)) return "";
+	return node.content.map(collectText).join("");
 }

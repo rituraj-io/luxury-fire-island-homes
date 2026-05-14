@@ -26,20 +26,70 @@ import { paragraphs, type RentSection3 } from "@/lib/cms";
 import { useFinePointer } from "@/lib/motion";
 
 
-const FALLBACK: RentSection3 = {
-	text1: {
+type TextBlockData = { title: string; description: string };
+
+
+// Editorial fallback for each text block, used when section3 hasn't been
+// populated in the CMS yet. The CMS is the source of truth when present.
+const FALLBACK_BLOCKS: [TextBlockData, TextBlockData] = [
+	{
 		title: "THE LUXURY FIRE ISLAND HOMES DIFFERENCE:",
 		description:
 			"At Luxury Fire Island Homes, we take the stress off your plate and match you with a vacation rental that actually delivers — from the spotless kitchen to the smooth check-in to the sunset view you’ll be bragging about for months.",
 	},
-	text2: {
+	{
 		title: "Fun for the whole family",
 		description:
 			"Whether you’re planning a peaceful couples’ weekend or a multi-family getaway (in-laws optional 🥂), we’ll find you the perfect place — fast and for at least $1K less than what you’d pay on Airbnb or Vrbo.\n\nAnd yes, we have plenty of pet-friendly homes for rent. Because let’s be honest… you’re really coming so your favorite family member can hit the beach.",
 	},
-	image1Url: "",
-	image2Url: "",
-};
+];
+
+
+// Walks the new rows[]-based section3 schema and pairs the richText rows
+// (first = heading paragraph, rest = body) into TextBlock-ready objects.
+function blocksFromRows(data: RentSection3 | undefined): [TextBlockData, TextBlockData] {
+	const out: TextBlockData[] = [];
+	for (const row of data?.rows ?? []) {
+		if (row.kind !== "richText") continue;
+		const paras = paragraphs(row.content);
+		if (paras.length === 0) continue;
+		const [title, ...rest] = paras;
+		out.push({ title, description: rest.join("\n\n") });
+	}
+	return [
+		out[0] ?? FALLBACK_BLOCKS[0],
+		out[1] ?? FALLBACK_BLOCKS[1],
+	];
+}
+
+
+// Each cluster references photos by filename slug (e.g. "bbq-umbrella"),
+// so we collect every image URL across section3's image rows into a slug-keyed
+// map. CMS URLs end with `<uuid>-<filename>.<ext>`.
+type ImageMap = Record<string, string>;
+
+function buildImageMap(data: RentSection3 | undefined): ImageMap {
+	const out: ImageMap = {};
+	for (const row of data?.rows ?? []) {
+		if (row.kind !== "images") continue;
+		for (const url of row.urls) {
+			const slug = slugFromUrl(url);
+			if (slug && !out[slug]) out[slug] = url;
+		}
+	}
+	return out;
+}
+
+function slugFromUrl(url: string): string | null {
+	const file = url.split("/").pop();
+	if (!file) return null;
+	const stripped = file.replace(/^[0-9a-f-]{36}-/, "");
+	return stripped.replace(/\.[a-z]+$/i, "");
+}
+
+function pickSrc(map: ImageMap, slug: string, fallback: string): string {
+	return map[slug] ?? fallback;
+}
 
 
 // Parallax magnitudes (px). Each photo's vertical travel across the section's
@@ -58,14 +108,8 @@ type ParallaxCtx = {
 
 
 export default function RentDifference({ data }: { data?: RentSection3 }) {
-	// CMS section3 was migrated to a rows-based schema; this consumer still
-	// expects the legacy {text1, text2} shape. Only honor the payload when
-	// both legacy fields are present, otherwise fall through to FALLBACK so
-	// the page keeps rendering with the hardcoded marketing copy.
-	const d =
-		data && (data as RentSection3).text1?.title && (data as RentSection3).text2?.title
-			? data
-			: FALLBACK;
+	const [block1, block2] = blocksFromRows(data);
+	const images = buildImageMap(data);
 	const sectionRef = useRef<HTMLElement>(null);
 	const reduced = useReducedMotion();
 	const finePointer = useFinePointer();
@@ -83,20 +127,20 @@ export default function RentDifference({ data }: { data?: RentSection3 }) {
 				{/* Row 1 — text on the left, cluster on the right. bbq image
 				    overflows beneath the text card via z-index stacking. */}
 				<Reveal className="relative z-10">
-					<TextBlock {...d.text1} />
+					<TextBlock {...block1} />
 				</Reveal>
 				<Reveal delay={0.05}>
-					<ClusterA ctx={ctx} />
+					<ClusterA ctx={ctx} images={images} />
 				</Reveal>
 
 				{/* Row 2 — cluster on the left, text on the right. Mobile keeps
 				    text first for narrative flow (text1 → cluster A → text2 →
 				    cluster B); desktop reorders so the cluster lands in column 1. */}
 				<Reveal className="min-[992px]:order-2">
-					<TextBlock {...d.text2} />
+					<TextBlock {...block2} />
 				</Reveal>
 				<Reveal delay={0.05} className="min-[992px]:order-1">
-					<ClusterB ctx={ctx} />
+					<ClusterB ctx={ctx} images={images} />
 				</Reveal>
 			</div>
 		</section>
@@ -175,7 +219,7 @@ function Photo({
 // Cluster paired with text1 ("THE LUXURY FIRE ISLAND HOMES DIFFERENCE")
 // — two tilted, parallaxed photos with the LFIH seal anchoring the bottom
 // center, slightly overlapping both photos.
-function ClusterA({ ctx }: { ctx: ParallaxCtx }) {
+function ClusterA({ ctx, images }: { ctx: ParallaxCtx; images: ImageMap }) {
 	return (
 		<div className="relative mx-auto aspect-[10/8] w-full max-w-[480px]">
 			<Photo
@@ -184,7 +228,7 @@ function ClusterA({ ctx }: { ctx: ParallaxCtx }) {
 				rotate={3}
 				position="-left-[14%] top-[2%] w-[64%]"
 				aspect="aspect-[885/752]"
-				src="/assets/images/bbq-umbrella.webp"
+				src={pickSrc(images, "bbq-umbrella", "/assets/images/bbq-umbrella.webp")}
 				alt="Outdoor dining under a beach umbrella"
 			/>
 			<Photo
@@ -193,7 +237,7 @@ function ClusterA({ ctx }: { ctx: ParallaxCtx }) {
 				rotate={8}
 				position="right-[2%] -top-[2%] w-[52%]"
 				aspect="aspect-[579/778]"
-				src="/assets/images/cornfield-farmhouse.webp"
+				src={pickSrc(images, "cornfield-farmhouse", "/assets/images/cornfield-farmhouse.webp")}
 				alt="Tall Fire Island farmhouse"
 			/>
 			{/* LFIH seal anchored bottom-center, layered over both photos. Same
@@ -201,7 +245,7 @@ function ClusterA({ ctx }: { ctx: ParallaxCtx }) {
 			    wrapper with the blue line-art SVG inset by the wrapper padding. */}
 			<div className="pointer-events-none absolute left-[28%] top-[58%] flex aspect-square w-[34%] rotate-[3deg] items-center justify-center rounded-full bg-brand-yellow p-1.5 shadow-lg">
 				<Image
-					src="/assets/images/logo-seal-blue.svg"
+					src={pickSrc(images, "logo-seal-blue", "/assets/images/logo-seal-blue.svg")}
 					alt=""
 					width={200}
 					height={200}
@@ -216,7 +260,7 @@ function ClusterA({ ctx }: { ctx: ParallaxCtx }) {
 // Cluster paired with text2 ("Fun for the whole family")
 // — two tilted, parallaxed photos: man on a beach bike up front, dog on the
 // boat ride peeking from behind.
-function ClusterB({ ctx }: { ctx: ParallaxCtx }) {
+function ClusterB({ ctx, images }: { ctx: ParallaxCtx; images: ImageMap }) {
 	return (
 		<div className="relative mx-auto aspect-[3/2] w-full max-w-[460px]">
 			<Photo
@@ -225,7 +269,7 @@ function ClusterB({ ctx }: { ctx: ParallaxCtx }) {
 				rotate={5}
 				position="right-[2%] top-[0%] w-[58%]"
 				aspect="aspect-[886/750]"
-				src="/assets/images/dog-1.webp"
+				src={pickSrc(images, "dog-1", "/assets/images/dog-1.webp")}
 				alt="Dog enjoying the boat ride"
 			/>
 			<Photo
@@ -234,7 +278,7 @@ function ClusterB({ ctx }: { ctx: ParallaxCtx }) {
 				rotate={-5}
 				position="left-[2%] top-[18%] w-[58%]"
 				aspect="aspect-[886/750]"
-				src="/assets/images/photo-3.webp"
+				src={pickSrc(images, "photo-3", "/assets/images/photo-3.webp")}
 				alt="Cruising Fire Island on a beach bike"
 			/>
 		</div>

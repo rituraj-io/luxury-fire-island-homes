@@ -1,6 +1,5 @@
 // RentTruth — section 5 of /current-rentals. Blue-gray band, centered:
-// script "The Truth?" headline, supporting paragraph, and a closing
-// italic bottomline.
+// script "The Truth?" headline and a supporting paragraph from CMS.
 
 import Reveal from "@/components/motion/Reveal";
 import { paragraphs, type RentSection5 } from "@/lib/cms";
@@ -9,9 +8,7 @@ import { paragraphs, type RentSection5 } from "@/lib/cms";
 const FALLBACK: RentSection5 = {
 	headline: "The Truth?",
 	description:
-		"Our Clients Come for the Homes... But Stay for the Service.\nYou don’t just want “a rental” — you want someone who listens, follows through, and treats your vacation like it actually matters. That’s us.",
-	bottomline:
-		"We’ve helped hundreds of NYC and Long Island families find their dream Fire Island vacation home — and we’d love to help you too.",
+		"Our Clients Come for the Homes... But Stay for the Service.\nYou don’t just want “a rental”—you want someone who listens, follows through, and treats\nyour vacation like it actually matters. That’s us.",
 };
 
 
@@ -42,13 +39,6 @@ export default function RentTruth({ data }: { data?: RentSection5 }) {
 					))}
 				</div>
 
-				<Reveal
-					as="p"
-					delay={0.05 + paras.length * 0.05}
-					className="mt-8 font-sans text-[18px] font-semibold italic leading-snug text-brand-blue md:text-[20px]"
-				>
-					{d.bottomline}
-				</Reveal>
 			</div>
 		</section>
 	);
