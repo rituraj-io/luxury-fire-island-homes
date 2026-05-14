@@ -135,9 +135,13 @@ export default function PropertyOverview({ rental }: Props) {
 		<section className="w-full bg-[#f8f4ec] py-16 md:py-20">
 			<div className="mx-auto grid w-full max-w-[1180px] gap-10 px-4 md:px-8 min-[992px]:grid-cols-[1fr_360px] min-[992px]:gap-14">
 				{/* Mobile: booking card first so the primary CTA is reachable */}
-				<div className="order-1 min-[992px]:hidden">
+				<Reveal
+					y={DISTANCE.card}
+					duration={DURATION.card}
+					className="order-1 min-[992px]:hidden"
+				>
 					<BookingCard rental={rental} />
-				</div>
+				</Reveal>
 
 				<div className="order-2 min-[992px]:order-1">
 					{description.length > 0 && (
@@ -252,11 +256,16 @@ export default function PropertyOverview({ rental }: Props) {
 							>
 								Listed by
 							</Reveal>
-							<div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+							<RevealStagger
+								gap={STAGGER.card}
+								className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2"
+							>
 								{agents.map((a) => (
-									<AgentCard key={a.name} agent={a} />
+									<RevealItem key={a.name} y={DISTANCE.card} duration={DURATION.card}>
+										<AgentCard agent={a} />
+									</RevealItem>
 								))}
-							</div>
+							</RevealStagger>
 						</div>
 					)}
 				</div>
@@ -264,7 +273,9 @@ export default function PropertyOverview({ rental }: Props) {
 				{/* Desktop: sticky-ish booking column on the right */}
 				<div className="order-3 hidden min-[992px]:order-2 min-[992px]:block">
 					<div className="sticky top-36">
-						<BookingCard rental={rental} />
+						<Reveal y={DISTANCE.card} duration={DURATION.card}>
+							<BookingCard rental={rental} />
+						</Reveal>
 					</div>
 				</div>
 			</div>

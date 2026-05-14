@@ -60,31 +60,42 @@ export default function InquiryModal({ open, onClose, propertySlug, propertyName
 	// Freeze the body in place with position:fixed (preserving the current
 	// scroll Y as a negative offset). This is the only approach that
 	// reliably prevents wheel events from chaining through to the page
-	// underneath. `scrollbar-gutter: stable` on html (globals.css) keeps the
-	// page width steady so fixed elements like the nav don't shift.
+	// underneath. We reserve the disappearing scrollbar's width as body
+	// padding-right so fixed elements (the nav) don't shift sideways.
 	useEffect(() => {
 		if (!render) return;
 		const scrollY = window.scrollY;
 		const body = document.body;
+		const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
 		const prev = {
 			position: body.style.position,
 			top: body.style.top,
 			left: body.style.left,
 			right: body.style.right,
 			width: body.style.width,
+			paddingRight: body.style.paddingRight,
 		};
 		body.style.position = "fixed";
 		body.style.top = `-${scrollY}px`;
 		body.style.left = "0";
 		body.style.right = "0";
 		body.style.width = "100%";
+		if (scrollbarWidth > 0) {
+			body.style.paddingRight = `${scrollbarWidth}px`;
+			document.documentElement.style.setProperty("--lock-gutter", `${scrollbarWidth}px`);
+		}
 		return () => {
 			body.style.position = prev.position;
 			body.style.top = prev.top;
 			body.style.left = prev.left;
 			body.style.right = prev.right;
 			body.style.width = prev.width;
+			body.style.paddingRight = prev.paddingRight;
+			document.documentElement.style.removeProperty("--lock-gutter");
 			window.scrollTo(0, scrollY);
+			// Force Lenis (smooth-scroll) to recompute its cached page bounds —
+			// otherwise scrolling stays clamped to the old (modal-open) height.
+			window.dispatchEvent(new Event("resize"));
 		};
 	}, [render]);
 

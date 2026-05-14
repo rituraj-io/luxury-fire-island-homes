@@ -702,31 +702,43 @@ function RentalFilterPanel({
 	// Lock the page scroll while open. We freeze the body in place with
 	// position:fixed (preserving the current scroll Y as an offset) — that's
 	// the only approach that reliably prevents wheel events from chaining
-	// through to the page underneath. `scrollbar-gutter: stable` on html
-	// (globals.css) keeps the page width steady so the nav doesn't shift.
+	// through to the page underneath. When the scrollbar disappears (body
+	// no longer scrolls), we reserve its width as `padding-right` on body
+	// so fixed-position elements (the nav) don't shift sideways.
 	useEffect(() => {
 		if (!render) return;
 		const scrollY = window.scrollY;
 		const body = document.body;
+		const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
 		const prev = {
 			position: body.style.position,
 			top: body.style.top,
 			left: body.style.left,
 			right: body.style.right,
 			width: body.style.width,
+			paddingRight: body.style.paddingRight,
 		};
 		body.style.position = "fixed";
 		body.style.top = `-${scrollY}px`;
 		body.style.left = "0";
 		body.style.right = "0";
 		body.style.width = "100%";
+		if (scrollbarWidth > 0) {
+			body.style.paddingRight = `${scrollbarWidth}px`;
+			document.documentElement.style.setProperty("--lock-gutter", `${scrollbarWidth}px`);
+		}
 		return () => {
 			body.style.position = prev.position;
 			body.style.top = prev.top;
 			body.style.left = prev.left;
 			body.style.right = prev.right;
 			body.style.width = prev.width;
+			body.style.paddingRight = prev.paddingRight;
+			document.documentElement.style.removeProperty("--lock-gutter");
 			window.scrollTo(0, scrollY);
+			// Force Lenis (smooth-scroll) to recompute its cached page bounds —
+			// otherwise scrolling stays clamped to the old (modal-open) height.
+			window.dispatchEvent(new Event("resize"));
 		};
 	}, [render]);
 
@@ -755,6 +767,32 @@ function RentalFilterPanel({
 		return () => el.removeEventListener("wheel", onWheel);
 	}, [render]);
 
+	// Live preview count for the Apply button. We re-query the API as the
+	// user tweaks the *draft* filters (debounced so quick adjustments don't
+	// hammer the endpoint) without mutating the parent's applied filters —
+	// the results grid only refreshes once they hit Apply. Falls back to the
+	// last known applied count while a preview request is in flight.
+	const [previewCount, setPreviewCount] = useState<number>(resultCount);
+	useEffect(() => {
+		if (!open) return;
+		let cancelled = false;
+		const t = setTimeout(() => {
+			searchProperties({ filters: draft, page: 1, limit: 1 })
+				.then((res) => {
+					if (cancelled) return;
+					setPreviewCount(res.pagination.total);
+				})
+				.catch(() => {
+					// Keep the prior count visible on transient failure rather than
+					// flashing "Show 0 homes".
+				});
+		}, 250);
+		return () => {
+			cancelled = true;
+			clearTimeout(t);
+		};
+	}, [draft, open]);
+
 	if (!render) return null;
 
 	const set = <K extends keyof Filters>(key: K, value: Filters[K]) =>
@@ -771,12 +809,6 @@ function RentalFilterPanel({
 			...f,
 			cadence: f.cadence.includes(c) ? f.cadence.filter((x) => x !== c) : [...f.cadence, c],
 		}));
-
-	// Estimated count under the drafted filter set — gives the Apply button a
-	// live preview. We don't have the full item list inside the drawer, so we
-	// surface the *currently-applied* count and rely on Apply to refresh.
-	// Future enhancement: pass items down and recompute here.
-	const previewCount = resultCount;
 
 	return (
 		<div

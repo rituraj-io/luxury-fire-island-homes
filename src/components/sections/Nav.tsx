@@ -48,7 +48,7 @@ export default function Nav() {
       // pt reserves room for the notch / status bar in standalone/PWA
       // contexts. In regular mobile browsers `env(safe-area-inset-top)`
       // resolves to 0, so layout is unchanged.
-      className="fixed inset-x-0 top-0 z-50 bg-brand-yellow pt-[env(safe-area-inset-top)]"
+      className="fixed inset-x-0 top-0 z-50 bg-brand-yellow pr-[var(--lock-gutter,0px)] pt-[env(safe-area-inset-top)]"
       initial={reduced ? false : { y: "-100%" }}
       animate={{ y: 0 }}
       transition={{ duration: DURATION.nav, ease: EASE }}

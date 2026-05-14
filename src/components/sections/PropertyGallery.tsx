@@ -12,15 +12,152 @@
 // photo-first information architecture the listing pattern expects.
 
 import Image from "next/image";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import Reveal from "@/components/motion/Reveal";
 import RevealStagger from "@/components/motion/RevealStagger";
 import RevealItem from "@/components/motion/RevealItem";
 import { DISTANCE, DURATION } from "@/lib/motion";
-import type { Rental } from "@/lib/rentals";
+import type { Rental, RentalImage } from "@/lib/rentals";
 
 
 type Props = { rental: Rental };
+
+
+// Near-fullscreen lightbox that lists every photo for the property. Mirrors
+// the body-scroll-lock pattern used elsewhere on the site (position:fixed
+// body + --lock-gutter on html so the fixed nav doesn't shift, plus a
+// resize dispatch on close so Lenis re-measures the page bounds).
+function GalleryLightbox({
+	photos,
+	open,
+	onClose,
+}: {
+	photos: RentalImage[];
+	open: boolean;
+	onClose: () => void;
+}) {
+	const [render, setRender] = useState(false);
+	const [shown, setShown] = useState(false);
+	const scrollRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (open) {
+			setRender(true);
+			let inner = 0;
+			const outer = requestAnimationFrame(() => {
+				inner = requestAnimationFrame(() => setShown(true));
+			});
+			return () => {
+				cancelAnimationFrame(outer);
+				if (inner) cancelAnimationFrame(inner);
+			};
+		}
+		setShown(false);
+		const t = setTimeout(() => setRender(false), 250);
+		return () => clearTimeout(t);
+	}, [open]);
+
+	useEffect(() => {
+		if (!render) return;
+		const scrollY = window.scrollY;
+		const body = document.body;
+		const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+		const prev = {
+			position: body.style.position,
+			top: body.style.top,
+			left: body.style.left,
+			right: body.style.right,
+			width: body.style.width,
+			paddingRight: body.style.paddingRight,
+		};
+		body.style.position = "fixed";
+		body.style.top = `-${scrollY}px`;
+		body.style.left = "0";
+		body.style.right = "0";
+		body.style.width = "100%";
+		if (scrollbarWidth > 0) {
+			body.style.paddingRight = `${scrollbarWidth}px`;
+			document.documentElement.style.setProperty("--lock-gutter", `${scrollbarWidth}px`);
+		}
+		return () => {
+			body.style.position = prev.position;
+			body.style.top = prev.top;
+			body.style.left = prev.left;
+			body.style.right = prev.right;
+			body.style.width = prev.width;
+			body.style.paddingRight = prev.paddingRight;
+			document.documentElement.style.removeProperty("--lock-gutter");
+			window.scrollTo(0, scrollY);
+			window.dispatchEvent(new Event("resize"));
+		};
+	}, [render]);
+
+	useEffect(() => {
+		if (!open) return;
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") onClose();
+		};
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [open, onClose]);
+
+	// Chrome's wheel routing breaks when body is position:fixed — events
+	// stop reaching the modal's scrollable child. Attach a non-passive
+	// wheel listener and scroll the viewport by hand.
+	useEffect(() => {
+		if (!render) return;
+		const el = scrollRef.current;
+		if (!el) return;
+		const onWheel = (e: WheelEvent) => {
+			e.preventDefault();
+			el.scrollTop += e.deltaY;
+		};
+		el.addEventListener("wheel", onWheel, { passive: false });
+		return () => el.removeEventListener("wheel", onWheel);
+	}, [render]);
+
+	if (!render) return null;
+
+	return (
+		<div
+			role="dialog"
+			aria-modal="true"
+			data-shown={shown}
+			className="fixed inset-0 z-[100] bg-black/90 opacity-0 transition-opacity duration-200 ease-out data-[shown=true]:opacity-100"
+			onClick={onClose}
+		>
+			<button
+				type="button"
+				onClick={onClose}
+				aria-label="Close gallery"
+				className="fixed right-4 top-4 z-10 flex h-11 w-11 cursor-pointer items-center justify-center bg-white/90 text-brand-blue shadow-lg transition hover:bg-white md:right-6 md:top-6"
+			>
+				<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+					<path d="M4 4l12 12M16 4L4 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+				</svg>
+			</button>
+
+			<div
+				ref={scrollRef}
+				className="absolute inset-0 overflow-y-auto overscroll-contain p-4 pt-20 md:p-10 md:pt-24"
+			>
+				<div className="mx-auto grid w-full max-w-[960px] grid-cols-1 gap-4 md:gap-6">
+					{photos.map((img, i) => (
+						<div key={`${img.src}-${i}`} className="relative aspect-[16/10] bg-white/5">
+							<Image
+								src={img.src}
+								alt={img.alt}
+								fill
+								sizes="(min-width: 768px) 960px, 100vw"
+								className="object-cover"
+							/>
+						</div>
+					))}
+				</div>
+			</div>
+		</div>
+	);
+}
 
 
 const STAT_VALUE =
@@ -32,6 +169,7 @@ const STAT_LABEL =
 export default function PropertyGallery({ rental }: Props) {
 	const lead = rental.gallery?.[0] ?? { src: rental.heroImage, alt: rental.heroAlt };
 	const smalls = rental.gallery?.slice(1, 5) ?? [];
+	const [lightboxOpen, setLightboxOpen] = useState(false);
 
 	// Split the price label into amount + period so the stats column reads
 	// like the others ("$4,680" / "MONTHLY") instead of stuffing the period
@@ -117,24 +255,26 @@ export default function PropertyGallery({ rental }: Props) {
 									</div>
 								))}
 								{rental.gallery && rental.gallery.length > 5 && (
-									<Link
-										href="#gallery"
-										className="absolute bottom-4 right-4 hidden bg-white/95 px-5 py-3 font-sans text-[13px] font-medium uppercase tracking-wider text-brand-blue shadow-md transition hover:bg-white min-[992px]:inline-block"
+									<button
+										type="button"
+										onClick={() => setLightboxOpen(true)}
+										className="absolute bottom-4 right-4 hidden cursor-pointer bg-white/95 px-5 py-3 font-sans text-[13px] font-medium uppercase tracking-wider text-brand-blue shadow-md transition hover:bg-white min-[992px]:inline-block"
 									>
 										View all {rental.gallery.length} photos
-									</Link>
+									</button>
 								)}
 							</div>
 
 							{/* Mobile "view all" — stacks below the grid where the desktop overlay can't fit */}
 							{rental.gallery && rental.gallery.length > 5 && (
 								<div className="mt-4 flex justify-center min-[992px]:hidden">
-									<Link
-										href="#gallery"
-										className="bg-white px-5 py-3 font-sans text-[13px] font-medium uppercase tracking-wider text-brand-blue shadow-md transition hover:brightness-95"
+									<button
+										type="button"
+										onClick={() => setLightboxOpen(true)}
+										className="cursor-pointer bg-white px-5 py-3 font-sans text-[13px] font-medium uppercase tracking-wider text-brand-blue shadow-md transition hover:brightness-95"
 									>
 										View all {rental.gallery.length} photos
-									</Link>
+									</button>
 								</div>
 							)}
 						</>
@@ -152,6 +292,14 @@ export default function PropertyGallery({ rental }: Props) {
 					)}
 				</Reveal>
 			</div>
+
+			{rental.gallery && (
+				<GalleryLightbox
+					photos={rental.gallery}
+					open={lightboxOpen}
+					onClose={() => setLightboxOpen(false)}
+				/>
+			)}
 		</section>
 	);
 }
