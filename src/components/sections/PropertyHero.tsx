@@ -18,7 +18,7 @@ import { EASE, useFinePointer } from "@/lib/motion";
 const CTAS = [
   { label: "BUY", href: "/buy" },
   { label: "SELL", href: "/sell" },
-  { label: "RENT", href: "/property-listing?for=rent" },
+  { label: "RENT", href: "/current-rentals" },
 ];
 
 

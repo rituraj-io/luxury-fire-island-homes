@@ -67,13 +67,13 @@ export default function AreaLocations() {
 								{loc.name}
 							</span>
 							<Link
-								href={`/buy?area=${loc.slug}`}
+								href={`/properties-on-sale?area=${loc.slug}`}
 								className="w-[170px] bg-brand-yellow px-3 py-2 text-center font-sans text-[12px] font-medium uppercase tracking-wider text-brand-blue transition hover:brightness-95 md:text-[13px]"
 							>
 								Homes For Sale
 							</Link>
 							<Link
-								href={`/property-listing?for=rent&area=${loc.slug}`}
+								href={`/current-rentals?area=${loc.slug}`}
 								className="w-[170px] bg-brand-orange px-3 py-2 text-center font-sans text-[12px] font-medium uppercase tracking-wider text-white transition hover:brightness-95 md:text-[13px]"
 							>
 								Homes For Rent

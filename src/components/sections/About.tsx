@@ -13,7 +13,7 @@ import { paragraphs, type AboutSection } from '@/lib/cms';
 
 // Static destinations for the four CMS-driven CTA strings (in API order).
 // "BUY" has no listing page yet — placeholder anchor until one is built.
-const ANSWER_HREFS = ['/property-listing?for=rent', '/buy', '/sell', '/manage'];
+const ANSWER_HREFS = ['/current-rentals', '/buy', '/sell', '/manage'];
 
 
 type Props = { data: AboutSection };

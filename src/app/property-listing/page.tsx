@@ -1,33 +1,28 @@
-// Property Listing — universal search-results page (replaces the older
-// /current-rentals route). Supports a `?for=rent` or `?for=sale` query param
-// to pre-select the matching listingType filter when the user lands here
-// from a marketing CTA. Without `?for=`, the page shows everything.
+// /property-listing is retired in favor of two locked routes:
+//   • /current-rentals      — Rent-only
+//   • /properties-on-sale   — Sale-only
 //
-// Marketing copy continues to live on /rent and /buy; this page is
-// intentionally just the listings view.
+// Kept as a permanent redirect so old links / bookmarks (including the
+// legacy `?for=sale|rent` and `?area=` params) keep working: sale intent
+// lands on the for-sale page, everything else on rentals, with the
+// neighborhood filter carried across.
 
-import { Suspense } from "react";
-import Nav from "@/components/sections/Nav";
-import AdvancedRentalSearch from "@/components/sections/AdvancedRentalSearch";
-import NextLevelRenting from "@/components/sections/NextLevelRenting";
-import CallBanner from "@/components/sections/CallBanner";
-import Footer from "@/components/sections/Footer";
+import { redirect } from "next/navigation";
 
 
-export default function PropertyListingPage() {
-	return (
-		<>
-			<Nav />
-			<main className="flex flex-col">
-				{/* Suspense satisfies Next 16's prerender requirement for
-				    useSearchParams() inside the client search component. */}
-				<Suspense fallback={null}>
-					<AdvancedRentalSearch />
-				</Suspense>
-				<NextLevelRenting />
-				<CallBanner />
-			</main>
-			<Footer />
-		</>
-	);
+function isSale(value: string | string[] | undefined): boolean {
+	const v = (Array.isArray(value) ? value[0] : value)?.toLowerCase();
+	return v === "sale" || v === "buy" || v === "sell" || v === "for-sale";
+}
+
+
+export default async function PropertyListingRedirect({
+	searchParams,
+}: {
+	searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+	const sp = await searchParams;
+	const area = Array.isArray(sp.area) ? sp.area[0] : sp.area;
+	const base = isSale(sp.for) ? "/properties-on-sale" : "/current-rentals";
+	redirect(area ? `${base}?area=${encodeURIComponent(area)}` : base);
 }
