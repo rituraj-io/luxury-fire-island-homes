@@ -45,7 +45,7 @@ export default async function RentPage() {
 				<Properties
 					background="bg-[#dbe2ec]"
 					featured={items}
-					cta={{ label: "SEE ALL CURRENT RENTALS", href: "/property-listing?for=rent" }}
+					cta={{ label: "SEE ALL CURRENT RENTALS", href: "/current-rentals" }}
 				/>
 				<RentWelcome data={rent?.section2} />
 				<RentDifference data={rent?.section3} />

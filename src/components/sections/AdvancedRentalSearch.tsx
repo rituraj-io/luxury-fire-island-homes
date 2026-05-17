@@ -1,19 +1,22 @@
 "use client";
 
 
-// AdvancedRentalSearch — the /current-rentals page experience.
+// AdvancedRentalSearch — the locked search-results experience powering
+// /current-rentals (Rent) and /properties-on-sale (Sale).
 //
 // Designed to feel like its own LFIH thing rather than an admin form. Three
 // layers carry the search UI:
 //
-//   1. A pill-shaped, segmented "search shell" at the top — labels +
-//      currently-selected value, click any segment to open the drawer.
-//   2. A horizontally-scrollable quick-amenities strip beneath it, mirroring
-//      the way Airbnb surfaces popular toggles inline (Pet Friendly, Pool,
-//      Beachfront…) so the page is interactive before users open the drawer.
-//   3. A right-side filter drawer with the full taxonomy — but using
-//      stepper-style pill rows for counts and tile cards for type-of-place,
-//      not the previous wall of <select> dropdowns.
+//   1. A pill-shaped, segmented "search shell" at the top — Where + When,
+//      click any segment to open its popover; an orange Filters button opens
+//      the full drawer.
+//   2. A horizontally-scrollable quick-amenities strip beneath it so the page
+//      is interactive before users open the drawer.
+//   3. A right-side filter drawer with the full taxonomy.
+//
+// The page's Rent-vs-Sale scope is fixed by the `lockedListingType` prop: the
+// listingType filter is forced, hidden from every surface, and re-applied
+// after any "Clear all" so it can never be wiped.
 //
 // Filter state lives at the top of the section. The drawer works on a draft
 // copy so users can change their mind without re-running the query on every
@@ -22,11 +25,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Reveal from "@/components/motion/Reveal";
-import RevealStagger from "@/components/motion/RevealStagger";
-import RevealItem from "@/components/motion/RevealItem";
-import { DISTANCE, DURATION, STAGGER } from "@/lib/motion";
+import { DISTANCE, DURATION } from "@/lib/motion";
 import {
 	CADENCES,
 	countActive,
@@ -62,7 +63,7 @@ const POPULAR_FEATURES = [
 	"Outdoor Pool",
 	"Beachfront",
 	"WiFi",
-	"Washer/Dryer",
+	"Bay View",
 	"Hot Tub",
 	"Central AC",
 	"Beach Chairs",
@@ -80,12 +81,48 @@ function listingTypeFromQuery(value: string | null): "" | "Rent" | "Sale" {
 }
 
 
-export default function AdvancedRentalSearch() {
+// Maps the `?area=` slug (e.g. "ocean-beach", "point-o-woods") to a canonical
+// city string by matching against NEIGHBORHOODS. Falls back to a title-cased
+// version of the slug if the area isn't in our list, so the filter still
+// passes through cleanly even for newly-added neighborhoods.
+function cityFromAreaSlug(slug: string | null): string {
+	if (!slug) return "";
+	const norm = slug.toLowerCase();
+	const match = NEIGHBORHOODS.find(
+		(n) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-") === norm,
+	);
+	if (match) return match;
+	return slug
+		.split("-")
+		.filter(Boolean)
+		.map((w) => w[0].toUpperCase() + w.slice(1))
+		.join(" ");
+}
+
+
+export default function AdvancedRentalSearch({
+	lockedListingType,
+}: {
+	// When set, this page only ever shows Rent (or Sale) listings: the
+	// listingType filter is forced, hidden from the UI, and can't be cleared.
+	// Drives the two locked routes /current-rentals and /properties-on-sale.
+	lockedListingType?: "Rent" | "Sale";
+} = {}) {
 	const searchParams = useSearchParams();
-	const initialListingType = listingTypeFromQuery(searchParams.get("for"));
+	const initialListingType = lockedListingType ?? listingTypeFromQuery(searchParams.get("for"));
+	const initialCity = cityFromAreaSlug(searchParams.get("area"));
+
+	// Re-applies the locked listingType after any reset/apply so "Clear all"
+	// (chips row, drawer, or empty-state) can never wipe the page's scope.
+	const withLock = useCallback(
+		(f: Filters): Filters => (lockedListingType ? { ...f, listingType: lockedListingType } : f),
+		[lockedListingType],
+	);
+
 	const [filters, setFilters] = useState<Filters>(() => ({
 		...EMPTY_FILTERS,
 		listingType: initialListingType,
+		city: initialCity,
 	}));
 	const [sort, setSort] = useState<SortKey>("default");
 	const [panelOpen, setPanelOpen] = useState(false);
@@ -96,7 +133,9 @@ export default function AdvancedRentalSearch() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
-	const activeCount = countActive(filters);
+	// The forced listingType on a locked page isn't a user-chosen filter, so
+	// it must not inflate the badge or trigger the "Clear all" chips row.
+	const activeCount = countActive(filters) - (lockedListingType ? 1 : 0);
 
 	// Refetch from page 1 whenever filters change. Cancellation prevents
 	// stale results from a slower in-flight request from overwriting newer
@@ -186,6 +225,7 @@ export default function AdvancedRentalSearch() {
 						setFilters={setFilters}
 						onOpenFullFilters={() => setPanelOpen(true)}
 						activeCount={activeCount}
+						lockedListingType={lockedListingType}
 					/>
 				</Reveal>
 
@@ -195,7 +235,7 @@ export default function AdvancedRentalSearch() {
 
 				{activeCount > 0 && (
 					<Reveal y={DISTANCE.text} duration={DURATION.text}>
-						<ChipsRow filters={filters} setFilters={setFilters} />
+						<ChipsRow filters={filters} setFilters={setFilters} lockedListingType={lockedListingType} />
 					</Reveal>
 				)}
 
@@ -236,7 +276,7 @@ export default function AdvancedRentalSearch() {
 						</p>
 						<button
 							type="button"
-							onClick={() => setFilters(EMPTY_FILTERS)}
+							onClick={() => setFilters(withLock(EMPTY_FILTERS))}
 							className="mt-5 bg-brand-orange px-6 py-2 font-sans text-[14px] font-medium uppercase tracking-wider text-white transition hover:brightness-95"
 						>
 							Clear filters
@@ -304,8 +344,9 @@ export default function AdvancedRentalSearch() {
 				onClose={() => setPanelOpen(false)}
 				initial={filters}
 				resultCount={total}
+				lockedListingType={lockedListingType}
 				onApply={(next) => {
-					setFilters(next);
+					setFilters(withLock(next));
 					setPanelOpen(false);
 				}}
 			/>
@@ -317,7 +358,7 @@ export default function AdvancedRentalSearch() {
 /* ──────────────────────── pill search bar ──────────────────────── */
 
 
-type SegKey = "where" | "stay" | "type";
+type SegKey = "where" | "when";
 
 
 function PillSearchBar({
@@ -325,14 +366,28 @@ function PillSearchBar({
 	setFilters,
 	onOpenFullFilters,
 	activeCount,
+	lockedListingType,
 }: {
 	filters: Filters;
 	setFilters: React.Dispatch<React.SetStateAction<Filters>>;
 	onOpenFullFilters: () => void;
 	activeCount: number;
+	lockedListingType?: "Rent" | "Sale";
 }) {
 	const [openSeg, setOpenSeg] = useState<SegKey | null>(null);
 	const wrapRef = useRef<HTMLDivElement>(null);
+
+	// When/Dates state is intentionally local + preview-only: the public
+	// search API has no check-in/out params yet, so the calendar and month
+	// cards drive the segment label but don't hit the backend. Cadence does
+	// flow through (filters.cadence → listingAvailabilityCadence).
+	const [when, setWhen] = useState<WhenValue>(() => ({
+		tab: "dates",
+		start: null,
+		end: null,
+		flex: "Exact dates",
+		months: [],
+	}));
 
 	// Close on click outside or Escape only — scroll intentionally does NOT
 	// dismiss; the popover sits under the fixed nav (lower z-index) so
@@ -358,19 +413,13 @@ function PillSearchBar({
 	const toggle = (seg: SegKey) => setOpenSeg((prev) => (prev === seg ? null : seg));
 
 	const whereLabel = filters.city || "Anywhere on Fire Island";
-	const lengthLabel =
-		filters.cadence.length === 0
-			? "Any length"
-			: filters.cadence.length === 1
-				? filters.cadence[0]
-				: `${filters.cadence[0]} + ${filters.cadence.length - 1}`;
-	const typeLabel = filters.listingType || "Sale or Rent";
+	const whenLabel = whenSummary(when, filters.cadence);
 
 	return (
 		<div className="mx-auto mt-10 w-full max-w-[860px]">
 			{/* Mobile (< md): single full-width button that opens the full
 			    filters modal directly — no per-segment popovers, since the bar
-			    can't fit three legible segments on a 360–414px viewport. */}
+			    can't fit legible segments on a 360–414px viewport. */}
 			<button
 				type="button"
 				onClick={onOpenFullFilters}
@@ -405,61 +454,37 @@ function PillSearchBar({
 				<Divider />
 
 				<div className="relative min-w-0 flex-1">
-					<Segment label="Stay length" value={lengthLabel} active={openSeg === "stay"} onClick={() => toggle("stay")} />
-					<SegmentPopover open={openSeg === "stay"} align="center">
-						<PopoverBlock title="Stay length" helper="Available nightly, weekly, monthly, or seasonally. Awaiting backend field — preview only.">
-							<div className="flex flex-wrap gap-2">
-								{CADENCES.map((c) => {
-									const active = filters.cadence.includes(c);
-									return (
-										<button
-											key={c}
-											type="button"
-											onClick={() =>
-												setFilters((f) => ({
-													...f,
-													cadence: f.cadence.includes(c) ? f.cadence.filter((x) => x !== c) : [...f.cadence, c],
-												}))
-											}
-											className={`h-10 cursor-pointer border-2 px-5 font-sans text-[13px] font-medium uppercase tracking-wider transition ${
-												active ? "border-brand-blue bg-brand-blue text-white" : "border-brand-blue/30 bg-white text-brand-blue hover:bg-brand-blue/5"
-											}`}
-										>
-											{c}
-										</button>
-									);
-								})}
-							</div>
-						</PopoverBlock>
+					<Segment label="When" value={whenLabel} active={openSeg === "when"} onClick={() => toggle("when")} />
+					<SegmentPopover open={openSeg === "when"} align="right">
+						<WhenPicker
+							value={when}
+							onChange={setWhen}
+							cadence={filters.cadence}
+							onToggleCadence={(c) =>
+								setFilters((f) => ({
+									...f,
+									cadence: f.cadence.includes(c) ? f.cadence.filter((x) => x !== c) : [...f.cadence, c],
+								}))
+							}
+						/>
 					</SegmentPopover>
 				</div>
 
-				<Divider />
-
-				<div className="relative min-w-0 flex-1">
-					<Segment label="Sale or rent" value={typeLabel} active={openSeg === "type"} onClick={() => toggle("type")} />
-					<SegmentPopover open={openSeg === "type"} align="right">
-						<PopoverBlock title="Sale or rent" helper="Pick one to narrow the grid — or leave open for both.">
-							<TileGrid>
-								{LISTING_TYPES.map((t) => (
-									<Tile
-										key={t}
-										active={filters.listingType === t}
-										onClick={() =>
-											setFilters((f) => ({
-												...f,
-												listingType: f.listingType === t ? "" : t,
-											}))
-										}
-									>
-										{t === "Sale" ? "For Sale" : "For Rent"}
-										<TileSub>{t === "Sale" ? "Buy a home on the island" : "Vacation or seasonal stay"}</TileSub>
-									</Tile>
-								))}
-							</TileGrid>
-						</PopoverBlock>
-					</SegmentPopover>
-				</div>
+				{/* Sale/Rent toggle removed — the locked routes fix page scope
+				    via lockedListingType. Rendered only without a lock. */}
+				{!lockedListingType && (
+					<>
+						<Divider />
+						<div className="relative min-w-0 flex-1">
+							<Segment
+								label="Sale or rent"
+								value={filters.listingType || "Sale or Rent"}
+								active={false}
+								onClick={onOpenFullFilters}
+							/>
+						</div>
+					</>
+				)}
 
 				<button
 					type="button"
@@ -555,7 +580,7 @@ function SegmentPopover({
 	return (
 		<div
 			data-shown={shown}
-			className={`absolute top-full z-30 mt-3 w-[min(560px,calc(100vw-2rem))] origin-top scale-[0.98] border-2 border-brand-blue/20 bg-[#fffbf8] p-6 opacity-0 shadow-2xl transition-all duration-200 ease-out data-[shown=true]:scale-100 data-[shown=true]:opacity-100 ${alignClass}`}
+			className={`absolute top-full z-30 mt-3 w-[min(620px,calc(100vw-2rem))] origin-top scale-[0.98] border-2 border-brand-blue/20 bg-[#fffbf8] p-6 opacity-0 shadow-2xl transition-all duration-200 ease-out data-[shown=true]:scale-100 data-[shown=true]:opacity-100 ${alignClass}`}
 		>
 			{children}
 		</div>
@@ -575,6 +600,329 @@ function PopoverBlock({ title, helper, children }: { title: string; helper?: str
 				</p>
 			)}
 			<div className="mt-4">{children}</div>
+		</div>
+	);
+}
+
+
+/* ──────────────────────── when picker ──────────────────────── */
+
+
+type WhenValue = {
+	tab: "dates" | "flexible";
+	start: string | null; // ISO yyyy-mm-dd
+	end: string | null;
+	flex: string; // "Exact dates" | "± N days"
+	months: string[]; // e.g. ["May 2026"]
+};
+
+
+const FLEX_OPTIONS = ["Exact dates", "± 1 day", "± 2 days", "± 3 days", "± 7 days", "± 14 days"];
+
+// The client wants the season scoped to May–September 2026 only (per the
+// walkthrough — Airbnb shows more, ours stops at September).
+const SEASON_MONTHS = [
+	{ label: "May", year: 2026 },
+	{ label: "June", year: 2026 },
+	{ label: "July", year: 2026 },
+	{ label: "August", year: 2026 },
+	{ label: "September", year: 2026 },
+];
+
+const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+
+
+function ymd(d: Date): string {
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+
+function fmtShort(iso: string): string {
+	const [, m, d] = iso.split("-").map(Number);
+	return `${d} ${SHORT_MONTHS[m - 1]}`;
+}
+
+
+// Builds the segment's value label from the current When selection. Falls
+// back through dates → cadence → months → placeholder.
+function whenSummary(w: WhenValue, cadence: Cadence[]): string {
+	if (w.start && w.end) return `${fmtShort(w.start)} – ${fmtShort(w.end)}`;
+	if (w.start) return fmtShort(w.start);
+	if (cadence.length === 1) return cadence[0];
+	if (cadence.length > 1) return `${cadence[0]} + ${cadence.length - 1}`;
+	if (w.months.length === 1) return w.months[0];
+	if (w.months.length > 1) return `${w.months.length} months`;
+	return "Add dates";
+}
+
+
+function WhenPicker({
+	value,
+	onChange,
+	cadence,
+	onToggleCadence,
+}: {
+	value: WhenValue;
+	onChange: (v: WhenValue) => void;
+	cadence: Cadence[];
+	onToggleCadence: (c: Cadence) => void;
+}) {
+	const set = (patch: Partial<WhenValue>) => onChange({ ...value, ...patch });
+
+	return (
+		<div>
+			{/* Dates / Flexible toggle */}
+			<div className="mx-auto flex w-[260px] rounded-full border-2 border-brand-blue/25 bg-white p-1">
+				{(["dates", "flexible"] as const).map((t) => (
+					<button
+						key={t}
+						type="button"
+						onClick={() => set({ tab: t })}
+						className={`h-9 flex-1 cursor-pointer rounded-full font-sans text-[13px] font-medium capitalize transition ${
+							value.tab === t ? "bg-brand-blue text-white" : "text-brand-blue hover:bg-brand-blue/5"
+						}`}
+					>
+						{t}
+					</button>
+				))}
+			</div>
+
+			{value.tab === "dates" ? (
+				<DateRangeCalendar
+					start={value.start}
+					end={value.end}
+					onSelect={(start, end) => set({ start, end })}
+					flex={value.flex}
+					onFlex={(flex) => set({ flex })}
+				/>
+			) : (
+				<div className="mt-6">
+					<p className="text-center font-sans text-[15px] font-semibold text-brand-blue">
+						How long would you like to stay?
+					</p>
+					<div className="mt-4 flex flex-wrap justify-center gap-2">
+						{CADENCES.map((c) => {
+							const active = cadence.includes(c);
+							return (
+								<button
+									key={c}
+									type="button"
+									onClick={() => onToggleCadence(c)}
+									className={`h-10 cursor-pointer rounded-full border-2 px-5 font-sans text-[13px] font-medium transition ${
+										active ? "border-brand-blue bg-brand-blue text-white" : "border-brand-blue/30 bg-white text-brand-blue hover:bg-brand-blue/5"
+									}`}
+								>
+									{c}
+								</button>
+							);
+						})}
+					</div>
+
+					<p className="mt-7 text-center font-sans text-[15px] font-semibold text-brand-blue">
+						When do you want to go?
+					</p>
+					<div className="mt-4 flex flex-wrap justify-center gap-3">
+						{SEASON_MONTHS.map((m) => {
+							const key = `${m.label} ${m.year}`;
+							const active = value.months.includes(key);
+							return (
+								<button
+									key={key}
+									type="button"
+									onClick={() =>
+										set({
+											months: active
+												? value.months.filter((x) => x !== key)
+												: [...value.months, key],
+										})
+									}
+									className={`flex h-[92px] w-[100px] cursor-pointer flex-col items-center justify-center gap-2 border-2 transition ${
+										active ? "border-brand-blue bg-brand-blue/5" : "border-brand-blue/20 bg-white hover:border-brand-blue/50"
+									}`}
+								>
+									<svg viewBox="0 0 24 24" className="h-6 w-6 text-brand-blue" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+										<rect x="3" y="4" width="18" height="17" rx="2" />
+										<path d="M3 9h18M8 2v4M16 2v4" />
+									</svg>
+									<span className="font-sans text-[14px] font-medium text-brand-blue">{m.label}</span>
+									<span className="font-sans text-[12px] text-brand-blue/60">{m.year}</span>
+								</button>
+							);
+						})}
+					</div>
+					<p className="mt-5 text-center font-sans text-[12px] italic text-brand-blue/55">
+						Date availability is awaiting the backend field — preview only.
+					</p>
+				</div>
+			)}
+		</div>
+	);
+}
+
+
+function DateRangeCalendar({
+	start,
+	end,
+	onSelect,
+	flex,
+	onFlex,
+}: {
+	start: string | null;
+	end: string | null;
+	onSelect: (start: string | null, end: string | null) => void;
+	flex: string;
+	onFlex: (f: string) => void;
+}) {
+	const today = useMemo(() => {
+		const d = new Date();
+		return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+	}, []);
+	// `base` is the left-hand visible month (first of month).
+	const [base, setBase] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
+
+	const canGoPrev = base > new Date(today.getFullYear(), today.getMonth(), 1);
+	const next = new Date(base.getFullYear(), base.getMonth() + 1, 1);
+
+	const handlePick = (iso: string) => {
+		// First click (or a completed range) starts a fresh range. Second
+		// click closes it; clicking before the start resets to that day.
+		if (!start || (start && end)) {
+			onSelect(iso, null);
+			return;
+		}
+		if (iso < start) {
+			onSelect(iso, null);
+			return;
+		}
+		onSelect(start, iso);
+	};
+
+	return (
+		<div className="mt-6">
+			<div className="relative grid grid-cols-1 gap-8 sm:grid-cols-2">
+				<button
+					type="button"
+					aria-label="Previous month"
+					disabled={!canGoPrev}
+					onClick={() => setBase(new Date(base.getFullYear(), base.getMonth() - 1, 1))}
+					className="absolute left-0 top-1 flex h-7 w-7 cursor-pointer items-center justify-center text-brand-blue transition hover:bg-brand-blue/10 disabled:cursor-not-allowed disabled:opacity-30"
+				>
+					<svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+						<path d="m15 18-6-6 6-6" />
+					</svg>
+				</button>
+				<button
+					type="button"
+					aria-label="Next month"
+					onClick={() => setBase(new Date(base.getFullYear(), base.getMonth() + 1, 1))}
+					className="absolute right-0 top-1 flex h-7 w-7 cursor-pointer items-center justify-center text-brand-blue transition hover:bg-brand-blue/10"
+				>
+					<svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+						<path d="m9 18 6-6-6-6" />
+					</svg>
+				</button>
+
+				<MonthGrid month={base} today={today} start={start} end={end} onPick={handlePick} />
+				<div className="hidden sm:block">
+					<MonthGrid month={next} today={today} start={start} end={end} onPick={handlePick} />
+				</div>
+			</div>
+
+			<div className="mt-6 flex flex-wrap items-center gap-2 border-t border-brand-blue/10 pt-5">
+				{FLEX_OPTIONS.map((o) => {
+					const active = flex === o;
+					return (
+						<button
+							key={o}
+							type="button"
+							onClick={() => onFlex(o)}
+							className={`h-9 cursor-pointer rounded-full border-2 px-4 font-sans text-[12px] font-medium transition ${
+								active ? "border-brand-blue bg-brand-blue text-white" : "border-brand-blue/25 bg-white text-brand-blue hover:bg-brand-blue/5"
+							}`}
+						>
+							{o}
+						</button>
+					);
+				})}
+				{(start || end) && (
+					<button
+						type="button"
+						onClick={() => onSelect(null, null)}
+						className="ml-auto cursor-pointer font-sans text-[12px] font-medium uppercase tracking-wider text-brand-blue underline-offset-4 hover:underline"
+					>
+						Clear dates
+					</button>
+				)}
+			</div>
+		</div>
+	);
+}
+
+
+function MonthGrid({
+	month,
+	today,
+	start,
+	end,
+	onPick,
+}: {
+	month: Date;
+	today: Date;
+	start: string | null;
+	end: string | null;
+	onPick: (iso: string) => void;
+}) {
+	const year = month.getFullYear();
+	const m = month.getMonth();
+	const firstWeekday = new Date(year, m, 1).getDay();
+	const daysInMonth = new Date(year, m + 1, 0).getDate();
+
+	const cells: (number | null)[] = [];
+	for (let i = 0; i < firstWeekday; i++) cells.push(null);
+	for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+	return (
+		<div>
+			<p className="mb-4 text-center font-sans text-[15px] font-semibold text-brand-blue">
+				{month.toLocaleString("en-US", { month: "long" })} {year}
+			</p>
+			<div className="grid grid-cols-7 gap-y-1">
+				{WEEKDAYS.map((w, i) => (
+					<div key={i} className="pb-2 text-center font-sans text-[12px] font-medium text-brand-blue/50">
+						{w}
+					</div>
+				))}
+				{cells.map((d, i) => {
+					if (d == null) return <div key={`e${i}`} />;
+					const date = new Date(year, m, d);
+					const iso = ymd(date);
+					const past = date < today;
+					const isStart = iso === start;
+					const isEnd = iso === end;
+					const inRange = start && end && iso > start && iso < end;
+					const selected = isStart || isEnd;
+					return (
+						<button
+							key={iso}
+							type="button"
+							disabled={past}
+							onClick={() => onPick(iso)}
+							className={`mx-auto flex h-9 w-9 cursor-pointer items-center justify-center font-sans text-[13px] transition disabled:cursor-not-allowed disabled:text-brand-blue/25 ${
+								selected
+									? "rounded-full bg-brand-blue font-medium text-white"
+									: inRange
+										? "bg-brand-blue/10 text-brand-blue"
+										: past
+											? ""
+											: "text-brand-blue hover:rounded-full hover:bg-brand-blue/10"
+							}`}
+						>
+							{d}
+						</button>
+					);
+				})}
+			</div>
 		</div>
 	);
 }
@@ -632,15 +980,24 @@ function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
 }
 
 
-function ChipsRow({ filters, setFilters }: { filters: Filters; setFilters: React.Dispatch<React.SetStateAction<Filters>> }) {
+function ChipsRow({
+	filters,
+	setFilters,
+	lockedListingType,
+}: {
+	filters: Filters;
+	setFilters: React.Dispatch<React.SetStateAction<Filters>>;
+	lockedListingType?: "Rent" | "Sale";
+}) {
 	const clear = <K extends keyof Filters>(key: K, value: Filters[K]) =>
 		setFilters((f) => ({ ...f, [key]: value }));
 
 	const chips: React.ReactNode[] = [];
 	if (filters.keyword) chips.push(<Chip key="kw" label={`"${filters.keyword}"`} onRemove={() => clear("keyword", "")} />);
 	if (filters.city) chips.push(<Chip key="city" label={filters.city} onRemove={() => clear("city", "")} />);
-	if (filters.listingType) chips.push(<Chip key="lt" label={filters.listingType} onRemove={() => clear("listingType", "")} />);
-	if (filters.exclusiveListing) chips.push(<Chip key="exc" label={`Exclusive: ${filters.exclusiveListing}`} onRemove={() => clear("exclusiveListing", "")} />);
+	// Locked pages never surface a removable listingType chip — the scope is
+	// fixed and clearing it isn't allowed.
+	if (filters.listingType && !lockedListingType) chips.push(<Chip key="lt" label={filters.listingType} onRemove={() => clear("listingType", "")} />);
 	if (filters.familyApartment) chips.push(<Chip key="fa" label={filters.familyApartment} onRemove={() => clear("familyApartment", "")} />);
 	if (filters.privateShared) chips.push(<Chip key="ps" label={filters.privateShared} onRemove={() => clear("privateShared", "")} />);
 	if (filters.cadence.length) chips.push(<Chip key="cad" label={`Stay: ${filters.cadence.join(", ")}`} onRemove={() => clear("cadence", [])} />);
@@ -667,7 +1024,7 @@ function ChipsRow({ filters, setFilters }: { filters: Filters; setFilters: React
 			{chips}
 			<button
 				type="button"
-				onClick={() => setFilters(EMPTY_FILTERS)}
+				onClick={() => setFilters(lockedListingType ? { ...EMPTY_FILTERS, listingType: lockedListingType } : EMPTY_FILTERS)}
 				className="ml-1 cursor-pointer font-sans text-[13px] font-medium uppercase tracking-wider text-brand-blue underline-offset-4 hover:underline"
 			>
 				Clear all
@@ -686,12 +1043,14 @@ function RentalFilterPanel({
 	initial,
 	resultCount,
 	onApply,
+	lockedListingType,
 }: {
 	open: boolean;
 	onClose: () => void;
 	initial: Filters;
 	resultCount: number;
 	onApply: (f: Filters) => void;
+	lockedListingType?: "Rent" | "Sale";
 }) {
 	const [draft, setDraft] = useState<Filters>(initial);
 
@@ -699,6 +1058,17 @@ function RentalFilterPanel({
 	// section so something is visible when the modal opens on mobile. Desktop
 	// ignores this — every section is always expanded via responsive classes.
 	const [mobileOpen, setMobileOpen] = useState<string>("where");
+
+	// Mirrors the desktop pill's When state so mobile users (who only get the
+	// drawer) can reach the calendar / Flexible options. Preview-only, same as
+	// desktop — only cadence (held in `draft`) actually reaches the API.
+	const [when, setWhen] = useState<WhenValue>(() => ({
+		tab: "dates",
+		start: null,
+		end: null,
+		flex: "Exact dates",
+		months: [],
+	}));
 
 	// Two-stage open/close so the dialog can animate in AND out. `render`
 	// controls whether the dialog is in the DOM; `shown` drives the opacity /
@@ -864,9 +1234,7 @@ function RentalFilterPanel({
 			    scroll viewport is absolutely positioned with inset-0. That gives
 			    the scroll viewport explicit, immutable dimensions tied to the
 			    row — content height can't leak through and inflate the box, so
-			    `overflow-y-auto` reliably activates. The previous flex-1 /
-			    max-h / min-h-0 combo kept letting the inner content's intrinsic
-			    height win in practice. */}
+			    `overflow-y-auto` reliably activates. */}
 			<div
 				data-shown={shown}
 				className="grid h-[100dvh] w-full max-w-[760px] origin-center translate-y-12 grid-rows-[auto_1fr_auto] overflow-hidden bg-[#fffbf8] opacity-0 shadow-2xl transition-all duration-300 ease-out data-[shown=true]:translate-y-0 data-[shown=true]:opacity-100 md:h-[85vh] md:translate-y-0 md:scale-95 md:data-[shown=true]:scale-100"
@@ -896,16 +1264,25 @@ function RentalFilterPanel({
 						<NeighborhoodPicker value={draft.city} onChange={(v) => set("city", v)} />
 					</Section>
 
-					<Section id="type" title="Type of place" helper="Sale or rent, single family or apartment, private or shared." mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}>
-						<TileGrid>
-							{LISTING_TYPES.map((t) => (
-								<Tile key={t} active={draft.listingType === t} onClick={() => set("listingType", draft.listingType === t ? "" : t)}>
-									{t === "Sale" ? "For Sale" : "For Rent"}
-									<TileSub>{t === "Sale" ? "Buy a home on the island" : "Vacation or seasonal stay"}</TileSub>
-								</Tile>
-							))}
-						</TileGrid>
-						<TileGrid className="mt-3">
+					<Section
+						id="type"
+						title="Type of place"
+						helper={lockedListingType ? "Single family or apartment, private or shared." : "Sale or rent, single family or apartment, private or shared."}
+						mobileOpen={mobileOpen}
+						setMobileOpen={setMobileOpen}
+					>
+						{/* Sale/Rent tiles hidden on the locked routes. */}
+						{!lockedListingType && (
+							<TileGrid>
+								{LISTING_TYPES.map((t) => (
+									<Tile key={t} active={draft.listingType === t} onClick={() => set("listingType", draft.listingType === t ? "" : t)}>
+										{t === "Sale" ? "For Sale" : "For Rent"}
+										<TileSub>{t === "Sale" ? "Buy a home on the island" : "Vacation or seasonal stay"}</TileSub>
+									</Tile>
+								))}
+							</TileGrid>
+						)}
+						<TileGrid className={lockedListingType ? "" : "mt-3"}>
 							{FAMILY_APARTMENT.map((t) => (
 								<Tile key={t} active={draft.familyApartment === t} onClick={() => set("familyApartment", draft.familyApartment === t ? "" : t)}>
 									{t}
@@ -919,24 +1296,8 @@ function RentalFilterPanel({
 						</TileGrid>
 					</Section>
 
-					<Section id="stay" title="Stay length" helper="Available nightly, weekly, monthly, or for the whole season. Awaiting backend field — preview only." mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}>
-						<div className="flex flex-wrap gap-2">
-							{CADENCES.map((c) => {
-								const active = draft.cadence.includes(c);
-								return (
-									<button
-										key={c}
-										type="button"
-										onClick={() => toggleCadence(c)}
-										className={`h-10 cursor-pointer border-2 px-5 font-sans text-[13px] font-medium uppercase tracking-wider transition ${
-											active ? "border-brand-blue bg-brand-blue text-white" : "border-brand-blue/30 bg-white text-brand-blue hover:bg-brand-blue/5"
-										}`}
-									>
-										{c}
-									</button>
-								);
-							})}
-						</div>
+					<Section id="when" title="When" helper="Pick dates, or stay flexible by length and month. Date availability awaiting backend field — preview only." mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}>
+						<WhenPicker value={when} onChange={setWhen} cadence={draft.cadence} onToggleCadence={toggleCadence} />
 					</Section>
 
 					<Section id="rooms" title="Rooms & guests" mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}>
@@ -947,26 +1308,6 @@ function RentalFilterPanel({
 
 					<Section id="price" title="Price" mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}>
 						<PriceRange value={draft.price} onChange={(r) => set("price", r)} />
-					</Section>
-
-					<Section id="exclusive" title="Exclusive listings" mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}>
-						<div className="flex gap-2">
-							{["yes", "no"].map((v) => {
-								const active = draft.exclusiveListing === v;
-								return (
-									<button
-										key={v}
-										type="button"
-										onClick={() => set("exclusiveListing", active ? "" : (v as "yes" | "no"))}
-										className={`h-10 cursor-pointer border-2 px-5 font-sans text-[13px] font-medium uppercase tracking-wider transition ${
-											active ? "border-brand-blue bg-brand-blue text-white" : "border-brand-blue/30 bg-white text-brand-blue hover:bg-brand-blue/5"
-										}`}
-									>
-										{v === "yes" ? "Exclusive only" : "Open market"}
-									</button>
-								);
-							})}
-						</div>
 					</Section>
 
 					{FEATURE_GROUPS.map((g) => (
@@ -996,7 +1337,7 @@ function RentalFilterPanel({
 				<footer className="flex items-center justify-between gap-3 border-t border-brand-blue/15 px-6 py-4">
 					<button
 						type="button"
-						onClick={() => setDraft(EMPTY_FILTERS)}
+						onClick={() => setDraft(lockedListingType ? { ...EMPTY_FILTERS, listingType: lockedListingType } : EMPTY_FILTERS)}
 						className="cursor-pointer font-sans text-[14px] font-medium uppercase tracking-wider text-brand-blue underline-offset-4 hover:underline"
 					>
 						Clear all
@@ -1338,18 +1679,5 @@ function Spinner() {
 			aria-label="Loading homes"
 			className="h-12 w-12 animate-spin rounded-full border-[3px] border-brand-blue/20 border-t-brand-blue"
 		/>
-	);
-}
-
-
-function Caret() {
-	return (
-		<svg
-			aria-hidden
-			viewBox="0 0 12 8"
-			className="pointer-events-none absolute right-2 top-1/2 h-2 w-3 -translate-y-1/2 text-brand-blue"
-		>
-			<path d="M1 1l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-		</svg>
 	);
 }

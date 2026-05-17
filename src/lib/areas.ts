@@ -90,8 +90,8 @@ export const AREAS: Area[] = [
 		pullQuote:
 			"The quiet, seafaring charm of Atlantique makes it a worthwhile trip if you're searching for a place to get away from the hustle and bustle of the 21st century.",
 
-		homesForSaleHref: "/property-listing?for=sale&area=atlantique",
-		homesToRentHref: "/property-listing?for=rent&area=atlantique",
+		homesForSaleHref: "/properties-on-sale?area=atlantique",
+		homesToRentHref: "/current-rentals?area=atlantique",
 	},
 ];
 

@@ -54,9 +54,7 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
 		label: "Additional Features",
 		options: [
 			"Pet Friendly",
-			"Pet Notes",
 			"Dishwasher",
-			"Electric Service",
 			"Fireplace",
 			"Skylights",
 			"Washer/Dryer",
@@ -68,10 +66,6 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
 		options: ["Central AC", "Ceiling Fans", "Wall/Window units", "Ductless Split Units"],
 	},
 	{
-		label: "Heating",
-		options: ["Forced Air", "Radiant Floor", "Split Units"],
-	},
-	{
 		label: "Home Amenities",
 		options: [
 			"Adult Bikes",
@@ -81,7 +75,6 @@ export const FEATURE_GROUPS: readonly FeatureGroup[] = [
 			"Outdoor Pool",
 			"Outdoor Shower",
 			"Coffee Machine",
-			"Type of Coffee Machine",
 		],
 	},
 	{
